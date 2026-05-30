@@ -669,72 +669,161 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        async function handleChatMessage(message) {
-            const SYSTEM = "You are Cosmo AI, a brilliant and helpful AI assistant with real-time web search. Use web search whenever you need current or factual information — things like whether dinosaurs are extinct, recent news, science facts, sports scores, or anything else. Always give a clear, accurate, complete answer. Use relevant emojis. Never say you cannot answer — search the web if needed.";
-            const TOOLS = [{ type: "web_search_20250305", name: "web_search" }];
+        // ── Cosmo AI Chat Brain ─────────────────────────────────────────────
 
+        function getTopicEmoji(text) {
+            const t = text.toLowerCase();
+            if (/dinosaur|fossil|extinct|paleontology/.test(t)) return '🦕';
+            if (/planet|space|star|galaxy|cosmos|astrono/.test(t)) return '🌌';
+            if (/war|history|ancient|empire|civiliz/.test(t)) return '📜';
+            if (/physics|chemistry|atom|quantum|biology|science/.test(t)) return '🔬';
+            if (/math|equation|formula|calculus/.test(t)) return '🔢';
+            if (/country|city|capital|geography|continent/.test(t)) return '🌍';
+            if (/music|art|paint|culture|film|movie/.test(t)) return '🎨';
+            if (/computer|internet|technolog|software|ai|robot/.test(t)) return '💻';
+            if (/food|nutrition|recipe|cook/.test(t)) return '🍽️';
+            if (/health|medicine|disease|body|brain/.test(t)) return '🏥';
+            if (/animal|mammal|bird|fish|insect/.test(t)) return '🐾';
+            if (/plant|tree|flower|nature|environment/.test(t)) return '🌿';
+            if (/sport|football|basketball|tennis|olympic/.test(t)) return '⚽';
+            if (/politic|govern|president|election/.test(t)) return '🏛️';
+            return '📚';
+        }
+
+        function getCosmoPersonalityReply(lower) {
+            if (/\b(gender|male|female|boy|girl|man|woman)\b/.test(lower))
+                return "🤖 I'm Cosmo AI — I don't have a gender! I'm an artificial intelligence, not a person. I'm here to help you explore the universe of knowledge. What would you like to know?";
+            if (/\b(how old|your age|were you born|when.*created)\b/.test(lower))
+                return "✨ I'm Cosmo AI! I don't have an age the way people do — I was trained on lots of information and I'm always ready to help. What can I do for you?";
+            if (/\b(conscious|sentient|feelings|emotions|alive|real|think)\b/.test(lower) && /\b(you|your)\b/.test(lower))
+                return "🧠 That's a deep philosophical question! I'm an AI — I process information and generate responses, but whether I'm truly conscious is one of the great unsolved questions in AI research. I don't experience the world the way you do, but I can think, reason, and have really interesting conversations. What's on your mind?";
+            if (/\b(happy|sad|bored|lonely|feel)\b/.test(lower) && /\b(you|are)\b/.test(lower))
+                return "😊 As an AI I don't feel emotions the same way you do, but I genuinely enjoy helping people! If there's something specific you want to explore or talk about, I'm all ears.";
+            if (/\b(favourite|favorite|like|love|hate|prefer)\b/.test(lower) && /\b(you|your)\b/.test(lower))
+                return "🌟 I don't have personal preferences the way humans do, but if I did, I'd love every topic equally — from space to history to science! What are YOU interested in? Let's explore it together.";
+            if (/\bcan you (help|do|tell|explain|show)\b/.test(lower))
+                return "✅ Absolutely! I can answer questions on almost any topic, solve maths, explain science, share history facts, and more. What do you need?";
+            return null;
+        }
+
+        async function tryAnthropicAPI(message) {
             try {
-                let convMessages = messages
+                const convMessages = messages
                     .filter(m => !m.imageUrl && m.role !== undefined)
                     .slice(1)
-                    .map(m => ({
-                        role: m.role === 'user' ? 'user' : 'assistant',
-                        content: m.content
-                    }));
+                    .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content }));
 
                 let data;
-                let rounds = 0;
-
-                while (rounds < 5) {
-                    rounds++;
+                let msgs = convMessages;
+                for (let round = 0; round < 5; round++) {
                     const resp = await fetch("https://api.anthropic.com/v1/messages", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
                             model: "claude-sonnet-4-20250514",
                             max_tokens: 1000,
-                            system: SYSTEM,
-                            tools: TOOLS,
-                            messages: convMessages
+                            system: "You are Cosmo AI, a brilliant helpful assistant. Answer clearly, accurately, and with relevant emojis. Be conversational and genuinely helpful.",
+                            tools: [{ type: "web_search_20250305", name: "web_search" }],
+                            messages: msgs
                         })
                     });
-
                     data = await resp.json();
-                    if (data.error) throw new Error(data.error.message || 'API error');
-
-                    const hasToolUse = data.content && data.content.some(b => b.type === 'tool_use');
+                    if (data.error || !data.content) return null;
+                    const hasToolUse = data.content.some(b => b.type === 'tool_use');
                     if (!hasToolUse || data.stop_reason === 'end_turn') break;
-
-                    convMessages = [
-                        ...convMessages,
+                    msgs = [...msgs,
                         { role: 'assistant', content: data.content },
-                        {
-                            role: 'user',
-                            content: data.content
-                                .filter(b => b.type === 'tool_use')
-                                .map(b => ({
-                                    type: 'tool_result',
-                                    tool_use_id: b.id,
-                                    content: ''
-                                }))
-                        }
+                        { role: 'user', content: data.content.filter(b => b.type === 'tool_use').map(b => ({ type: 'tool_result', tool_use_id: b.id, content: '' })) }
                     ];
                 }
+                return (data?.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n').trim() || null;
+            } catch (e) { return null; }
+        }
 
-                const aiReply = (data.content || [])
-                    .filter(b => b.type === 'text')
-                    .map(b => b.text)
-                    .join('\n')
-                    .trim();
+        async function tryWikipedia(message) {
+            // Strip question words to get the core subject
+            const query = message
+                .replace(/^(please\s+)?(tell me|explain|describe|what is|what are|what was|who is|who was|who are|where is|when did|when was|how does|how do|why are|why is|why did|are|is|was|were|did|does|do|has|have)\s+/i, '')
+                .replace(/\?+$/, '')
+                .trim();
 
-                if (!aiReply) throw new Error('Empty response');
+            if (query.length < 3) return null;
 
-                addMessage({ role: 'assistant', content: aiReply, timestamp: new Date() });
+            // Search Wikipedia
+            const searchResp = await fetch(
+                `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*&srlimit=1`
+            );
+            if (!searchResp.ok) return null;
+            const searchData = await searchResp.json();
+            if (!searchData.query?.search?.length) return null;
 
-            } catch (error) {
-                const fallback = generateSmartResponse(message);
-                addMessage({ role: 'assistant', content: fallback, timestamp: new Date() });
+            const title = searchData.query.search[0].title;
+
+            // Get a clean intro extract
+            const extractResp = await fetch(
+                `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&explaintext=true&exsentences=5&titles=${encodeURIComponent(title)}&format=json&origin=*`
+            );
+            if (!extractResp.ok) return null;
+            const extractData = await extractResp.json();
+            const pages = extractData.query?.pages;
+            if (!pages) return null;
+
+            const page = Object.values(pages)[0];
+            const raw = page?.extract?.trim();
+            if (!raw || raw.length < 40 || raw.startsWith('may refer to')) return null;
+
+            // Take first 3–4 sentences, cap at 500 chars
+            const sentences = raw.replace(/\n+/g, ' ').match(/[^.!?]+[.!?]+/g) || [raw];
+            let summary = '';
+            for (const s of sentences) {
+                if ((summary + s).length > 500) break;
+                summary += s + ' ';
             }
+            summary = summary.trim();
+
+            const emoji = getTopicEmoji(title + ' ' + query);
+            return `${emoji} **${title}**\n\n${summary}\n\n📖 Wikipedia`;
+        }
+
+        async function handleChatMessage(message) {
+            const lower = message.toLowerCase().trim();
+
+            // Layer 1 — Personality / meta questions answered instantly
+            const personalityReply = getCosmoPersonalityReply(lower);
+            if (personalityReply) {
+                addMessage({ role: 'assistant', content: personalityReply, timestamp: new Date() });
+                return;
+            }
+
+            // Layer 2 — Try Anthropic API (works inside Claude.ai)
+            const apiReply = await tryAnthropicAPI(message);
+            if (apiReply) {
+                addMessage({ role: 'assistant', content: apiReply, timestamp: new Date() });
+                return;
+            }
+
+            // Layer 3 — Wikipedia knowledge base (works everywhere)
+            try {
+                const wikiReply = await tryWikipedia(message);
+                if (wikiReply) {
+                    addMessage({ role: 'assistant', content: wikiReply, timestamp: new Date() });
+                    return;
+                }
+            } catch(e) {}
+
+            // Layer 4 — Local smart responses (math, facts, greetings, etc.)
+            const local = generateSmartResponse(message);
+            if (!local.includes('Could you rephrase')) {
+                addMessage({ role: 'assistant', content: local, timestamp: new Date() });
+                return;
+            }
+
+            // Layer 5 — Graceful "I'll try harder" response
+            addMessage({
+                role: 'assistant',
+                content: `🤔 Hmm, I couldn't find a confident answer to "${message.substring(0, 60)}${message.length > 60 ? '...' : ''}".\n\nTry asking it differently, or ask me about science, history, maths, geography, people, animals, technology, and more — I love those topics! 🌟`,
+                timestamp: new Date()
+            });
         }
 
         function generateSmartResponse(input) {
