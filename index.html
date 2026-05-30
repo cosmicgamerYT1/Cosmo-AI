@@ -1,0 +1,3583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmo AI - Your Intelligent Universe Explorer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(to bottom right, #0c4a6e, #1e3a8a, #1e40af, #3730a3);
+            overflow-x: hidden;
+        }
+
+        /* Animated cosmic background */
+        .stars-container {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .stars {
+            width: 1px;
+            height: 1px;
+            background: transparent;
+            box-shadow: 779px 1331px #FFF, 324px 42px #FFF, 303px 586px #FFF, 1312px 276px #FFF, 451px 625px #FFF, 
+                521px 1931px #FFF, 1087px 1871px #FFF, 36px 1546px #FFF, 132px 934px #FFF, 1698px 901px #FFF,
+                1418px 664px #FFF, 1448px 1157px #FFF, 1084px 232px #FFF, 347px 1776px #FFF, 1722px 243px #FFF,
+                1629px 835px #FFF, 479px 969px #FFF, 1231px 960px #FFF, 586px 384px #FFF, 164px 527px #FFF;
+            animation: twinkle 3s infinite;
+        }
+
+        .stars2 {
+            width: 2px;
+            height: 2px;
+            background: transparent;
+            box-shadow: 779px 1331px #FFF, 324px 42px #FFF, 303px 586px #FFF, 1312px 276px #FFF, 451px 625px #FFF, 
+                521px 1931px #FFF, 1087px 1871px #FFF, 36px 1546px #FFF, 132px 934px #FFF, 1698px 901px #FFF;
+            animation: twinkle 5s infinite;
+        }
+
+        .stars3 {
+            width: 3px;
+            height: 3px;
+            background: transparent;
+            box-shadow: 779px 1331px #FFF, 324px 42px #FFF, 303px 586px #FFF, 1312px 276px #FFF, 451px 625px #FFF;
+            animation: twinkle 7s infinite;
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(to right, rgba(49, 46, 129, 0.3), rgba(88, 28, 135, 0.3));
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-content {
+            max-width: 80rem;
+            margin: 0 auto;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-wrapper {
+            position: relative;
+        }
+
+        .logo-glow {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to right, #22d3ee, #a855f7);
+            border-radius: 9999px;
+            filter: blur(16px);
+            opacity: 0.5;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        .logo {
+            position: relative;
+            background: linear-gradient(to bottom right, #22d3ee, #3b82f6, #a855f7);
+            padding: 0.75rem;
+            border-radius: 9999px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo svg {
+            width: 2rem;
+            height: 2rem;
+            color: white;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.25rem;
+            font-weight: bold;
+            background: linear-gradient(to right, #a5f3fc, #93c5fd, #d8b4fe);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            color: #a5b4fc;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: 9999px;
+            font-weight: 500;
+            transition: all 0.3s;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+        }
+
+        .mode-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        .mode-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .mode-toggle.chat-mode {
+            background: linear-gradient(to right, #06b6d4, #3b82f6);
+            color: white;
+        }
+
+        .mode-toggle.image-mode {
+            background: linear-gradient(to right, #a855f7, #ec4899);
+            color: white;
+        }
+
+        /* Messages */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .messages-wrapper {
+            max-width: 64rem;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message {
+            display: flex;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 80%;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(to bottom right, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.2));
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            color: #ecfeff;
+        }
+
+        .message.assistant .message-content {
+            background: linear-gradient(to bottom right, rgba(168, 85, 247, 0.2), rgba(99, 102, 241, 0.2));
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            color: #f3e8ff;
+        }
+
+        .message.assistant.error .message-content {
+            background: linear-gradient(to bottom right, rgba(127, 29, 29, 0.3), rgba(154, 52, 18, 0.3));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fee2e2;
+        }
+
+        .message-header {
+            font-size: 0.875rem;
+            opacity: 0.7;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .message-header svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .message-badge {
+            font-size: 0.75rem;
+            background: rgba(168, 85, 247, 0.3);
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+        }
+
+        .message-text {
+            white-space: pre-wrap;
+            line-height: 1.625;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.5;
+            margin-top: 0.5rem;
+        }
+
+        .loading-indicator {
+            display: flex;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .loading-content {
+            background: linear-gradient(to bottom right, rgba(168, 85, 247, 0.2), rgba(99, 102, 241, 0.2));
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 1rem;
+            padding: 1rem 1.5rem;
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #ddd6fe;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .loading-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            background: #22d3ee;
+            border-radius: 9999px;
+            animation: bounce 1s infinite;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+            background: #3b82f6;
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+            background: #a855f7;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* Input Section */
+        .input-section {
+            background: linear-gradient(to right, rgba(49, 46, 129, 0.3), rgba(88, 28, 135, 0.3));
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 1.5rem;
+        }
+
+        .input-wrapper {
+            max-width: 64rem;
+            margin: 0 auto;
+        }
+
+        .input-form {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .input-field {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.5);
+            color: white;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 1rem;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            ring: 2px;
+            ring-color: rgba(34, 211, 238, 0.5);
+            border-color: rgba(34, 211, 238, 0.5);
+        }
+
+        .input-field::placeholder {
+            color: rgba(165, 180, 252, 0.5);
+        }
+
+        .input-field:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .submit-button {
+            background: linear-gradient(to right, #06b6d4, #3b82f6, #a855f7);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+        }
+
+        .submit-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .submit-button:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .submit-button svg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .input-hint {
+            text-align: center;
+            color: rgba(165, 180, 252, 0.6);
+            font-size: 0.875rem;
+            margin-top: 0.75rem;
+        }
+
+        /* Scrollbar styling */
+        .messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 4px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="stars-container">
+        <div class="stars"></div>
+        <div class="stars2"></div>
+        <div class="stars3"></div>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-wrapper">
+                        <div class="logo-glow"></div>
+                        <div class="logo">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div>
+                        <h1>Cosmo AI</h1>
+                        <p class="subtitle">Your Intelligent Universe Explorer</p>
+                    </div>
+                </div>
+                <button class="mode-toggle chat-mode" id="modeToggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    <span id="modeText">Chat Mode</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="messages-container" id="messagesContainer">
+            <div class="messages-wrapper" id="messagesWrapper"></div>
+        </div>
+
+        <div class="input-section">
+            <div class="input-wrapper">
+                <form class="input-form" id="inputForm">
+                    <input 
+                        type="text" 
+                        class="input-field" 
+                        id="inputField" 
+                        placeholder="💫 Ask Cosmo anything..."
+                        autocomplete="off"
+                    >
+                    <button type="submit" class="submit-button" id="submitButton">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m22 2-7 20-4-9-9-4Z"/>
+                            <path d="M22 2 11 13"/>
+                        </svg>
+                        Send
+                    </button>
+                </form>
+                <p class="input-hint" id="inputHint">💫 Powered by advanced AI - ask me anything!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let messages = [];
+        let isLoading = false;
+        let currentMode = 'chat'; // 'chat' or 'image'
+
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messagesWrapper = document.getElementById('messagesWrapper');
+        const inputForm = document.getElementById('inputForm');
+        const inputField = document.getElementById('inputField');
+        const submitButton = document.getElementById('submitButton');
+        const modeToggle = document.getElementById('modeToggle');
+        const modeText = document.getElementById('modeText');
+        const inputHint = document.getElementById('inputHint');
+
+        // Initialize with welcome message
+        addMessage({
+            role: 'assistant',
+            content: '✨ Welcome to Cosmo AI!\n\nI\'m your super-intelligent assistant with advanced capabilities:\n\n🔢 Math Expert - All operations: addition, subtraction, multiplication, division, powers, and more!\n📚 Knowledge Base - Science, history, geography, technology, and more\n🎨 AI Image Generator - Create actual visual images (switch to Image Mode!)\n\nTry asking:\n• "What is 2+2" or "156 take away 45"\n• "What is the speed of light?"\n• "Capital of France?"\n• Or switch to Image Mode and say "space galaxy"!\n\nWhat would you like to explore today?',
+            timestamp: new Date()
+        });
+
+        // Mode toggle
+        modeToggle.addEventListener('click', () => {
+            currentMode = currentMode === 'chat' ? 'image' : 'chat';
+            updateModeUI();
+        });
+
+        function updateModeUI() {
+            if (currentMode === 'image') {
+                modeToggle.className = 'mode-toggle image-mode';
+                modeToggle.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                        <circle cx="9" cy="9" r="2"/>
+                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                    </svg>
+                    <span id="modeText">Image Mode</span>
+                `;
+                inputField.placeholder = '🎨 Describe an image to generate...';
+                inputHint.textContent = '✨ Image generation mode active - describe what you want to see';
+            } else {
+                modeToggle.className = 'mode-toggle chat-mode';
+                modeToggle.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    <span id="modeText">Chat Mode</span>
+                `;
+                inputField.placeholder = '💫 Ask Cosmo anything...';
+                inputHint.textContent = '💫 Powered by advanced AI - ask me anything!';
+            }
+            inputField.focus();
+        }
+
+        // Form submission
+        inputForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!inputField.value.trim() || isLoading) return;
+
+            const userMessage = {
+                role: 'user',
+                content: inputField.value,
+                timestamp: new Date(),
+                mode: currentMode
+            };
+
+            addMessage(userMessage);
+            inputField.value = '';
+            setLoading(true);
+
+            try {
+                if (currentMode === 'image') {
+                    await handleImageGeneration(userMessage.content);
+                } else {
+                    await handleChatMessage(userMessage.content);
+                }
+            } catch (error) {
+                addMessage({
+                    role: 'assistant',
+                    content: '🔧 Oops! Something unexpected happened. Error: ' + error.message + '. Please try again!',
+                    timestamp: new Date(),
+                    isError: true
+                });
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        function addMessage(message) {
+            messages.push(message);
+            renderMessages();
+            scrollToBottom();
+            // Scroll again after a short delay to ensure images/content have fully rendered
+            setTimeout(scrollToBottom, 100);
+            setTimeout(scrollToBottom, 300);
+        }
+
+        function renderMessages() {
+            messagesWrapper.innerHTML = messages.map((msg, index) => {
+                const messageClass = msg.role === 'user' ? 'user' : 'assistant' + (msg.isError ? ' error' : '');
+                const badgeHTML = msg.mode === 'image' ? '<span class="message-badge">🎨 Image</span>' : '';
+                const headerIcon = msg.role === 'assistant' ? `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+                    </svg>
+                ` : '';
+
+                // Add image if present with download button
+                const imageHTML = msg.imageUrl ? `
+                    <div style="margin-top: 15px;">
+                        <img src="${msg.imageUrl}" style="max-width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" alt="Generated AI Image" id="generated-image-${index}" />
+                        <div style="margin-top: 10px;">
+                            <button onclick="downloadImage('${msg.imageUrl}', 'cosmo-ai-image-${index}.png')" style="
+                                background: linear-gradient(to right, #06b6d4, #3b82f6, #a855f7);
+                                color: white;
+                                border: none;
+                                padding: 10px 20px;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-weight: 600;
+                                font-size: 14px;
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                                transition: all 0.3s;
+                                box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+                            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="7 10 12 15 17 10"/>
+                                    <line x1="12" y1="15" x2="12" y2="3"/>
+                                </svg>
+                                Download Image
+                            </button>
+                        </div>
+                    </div>
+                ` : '';
+
+                return `
+                    <div class="message ${messageClass}" style="animation-delay: ${index * 0.05}s">
+                        <div class="message-content">
+                            <div class="message-header">
+                                <strong>${msg.role === 'user' ? 'You' : `${headerIcon} Cosmo AI`}</strong>
+                                ${badgeHTML}
+                            </div>
+                            <div class="message-text">${msg.content}</div>
+                            ${imageHTML}
+                            <div class="message-time">${msg.timestamp.toLocaleTimeString()}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            if (isLoading) {
+                messagesWrapper.innerHTML += `
+                    <div class="loading-indicator">
+                        <div class="loading-content">
+                            <div class="loading-dots">
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                            </div>
+                            <span style="font-size: 0.875rem; font-weight: 500;">${currentMode === 'image' ? 'Generating image...' : 'Cosmo is thinking...'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Scroll after rendering
+            setTimeout(scrollToBottom, 50);
+        }
+
+        function setLoading(loading) {
+            isLoading = loading;
+            inputField.disabled = loading;
+            submitButton.disabled = loading;
+            renderMessages();
+        }
+
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function handleChatMessage(message) {
+            const SYSTEM = "You are Cosmo AI, a brilliant and helpful AI assistant with real-time web search. Use web search whenever you need current or factual information — things like whether dinosaurs are extinct, recent news, science facts, sports scores, or anything else. Always give a clear, accurate, complete answer. Use relevant emojis. Never say you cannot answer — search the web if needed.";
+            const TOOLS = [{ type: "web_search_20250305", name: "web_search" }];
+
+            try {
+                let convMessages = messages
+                    .filter(m => !m.imageUrl && m.role !== undefined)
+                    .slice(1)
+                    .map(m => ({
+                        role: m.role === 'user' ? 'user' : 'assistant',
+                        content: m.content
+                    }));
+
+                let data;
+                let rounds = 0;
+
+                while (rounds < 5) {
+                    rounds++;
+                    const resp = await fetch("https://api.anthropic.com/v1/messages", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            model: "claude-sonnet-4-20250514",
+                            max_tokens: 1000,
+                            system: SYSTEM,
+                            tools: TOOLS,
+                            messages: convMessages
+                        })
+                    });
+
+                    data = await resp.json();
+                    if (data.error) throw new Error(data.error.message || 'API error');
+
+                    const hasToolUse = data.content && data.content.some(b => b.type === 'tool_use');
+                    if (!hasToolUse || data.stop_reason === 'end_turn') break;
+
+                    convMessages = [
+                        ...convMessages,
+                        { role: 'assistant', content: data.content },
+                        {
+                            role: 'user',
+                            content: data.content
+                                .filter(b => b.type === 'tool_use')
+                                .map(b => ({
+                                    type: 'tool_result',
+                                    tool_use_id: b.id,
+                                    content: ''
+                                }))
+                        }
+                    ];
+                }
+
+                const aiReply = (data.content || [])
+                    .filter(b => b.type === 'text')
+                    .map(b => b.text)
+                    .join('\n')
+                    .trim();
+
+                if (!aiReply) throw new Error('Empty response');
+
+                addMessage({ role: 'assistant', content: aiReply, timestamp: new Date() });
+
+            } catch (error) {
+                const fallback = generateSmartResponse(message);
+                addMessage({ role: 'assistant', content: fallback, timestamp: new Date() });
+            }
+        }
+
+        function generateSmartResponse(input) {
+            const message = input.toLowerCase().trim();
+
+            // Enhanced Math evaluation - handles all operations
+            if (message.match(/[\d\s+\-*/().^%x]+/) && (
+                message.includes('+') || message.includes('-') || message.includes('*') || 
+                message.includes('/') || message.includes('×') || message.includes('÷') ||
+                message.match(/\d+\s*\^\s*\d+/) || message.includes('plus') || 
+                message.includes('minus') || message.includes('times') || message.includes('divide') ||
+                message.includes('percent') || message.includes('%') || message.match(/\d+\s*x\s*\d+/)
+            )) {
+                try {
+                    let mathExpr = message
+                        .replace(/plus/g, '+')
+                        .replace(/minus/g, '-')
+                        .replace(/times/g, '*')
+                        .replace(/multiplied by/g, '*')
+                        .replace(/divided by|divide by|divided/g, '/')
+                        .replace(/×/g, '*')
+                        .replace(/÷/g, '/')
+                        .replace(/(\d+)\s*x\s*(\d+)/g, '$1*$2')  // Handle "5x9" format
+                        .replace(/\^/g, '**');
+                    
+                    // Handle "take away" for subtraction
+                    mathExpr = mathExpr.replace(/(\d+)\s*take\s*away\s*(\d+)/g, '$1-$2');
+                    mathExpr = mathExpr.replace(/(\d+)\s*takeaway\s*(\d+)/g, '$1-$2');
+                    
+                    // Handle "percent of"
+                    mathExpr = mathExpr.replace(/(\d+)\s*percent\s*of\s*(\d+)/g, '($1/100)*$2');
+                    mathExpr = mathExpr.replace(/(\d+)%\s*of\s*(\d+)/g, '($1/100)*$2');
+                    
+                    // Handle "to the power of"
+                    mathExpr = mathExpr.replace(/(\d+)\s*to the power of\s*(\d+)/g, '$1**$2');
+                    mathExpr = mathExpr.replace(/(\d+)\s*power\s*(\d+)/g, '$1**$2');
+                    
+                    // Handle "squared" and "cubed"
+                    mathExpr = mathExpr.replace(/(\d+)\s*squared/g, '$1**2');
+                    mathExpr = mathExpr.replace(/(\d+)\s*cubed/g, '$1**3');
+                    
+                    // Extract just the mathematical expression
+                    const extractedMath = mathExpr.match(/([\d\s+\-*/().%*]+)/g);
+                    if (extractedMath) {
+                        const result = evaluateMath(extractedMath.join(''));
+                        return `🔢 Answer: ${result}\n\nCalculation: ${input}\nResult: ${result}`;
+                    }
+                } catch (e) {
+                    // Continue to other handlers if math fails
+                }
+            }
+            
+            // Square root
+            if (message.includes('square root') || message.includes('sqrt')) {
+                const numMatch = message.match(/square root of (\d+)|sqrt\((\d+)\)|sqrt (\d+)/);
+                if (numMatch) {
+                    const num = numMatch[1] || numMatch[2] || numMatch[3];
+                    const result = Math.sqrt(parseFloat(num));
+                    return `🔢 Square Root\n\nThe square root of ${num} is ${Math.round(result * 1000000) / 1000000}`;
+                }
+            }
+            
+            // Times Tables
+            if (message.includes('times table') || message.includes('multiplication table') || 
+                message.match(/\d+x\s*table/) || message.includes('time table')) {
+                const numMatch = message.match(/(\d+)\s*times table|(\d+)x\s*table|times table.*?(\d+)|multiplication table.*?(\d+)|time table.*?(\d+)|(\d+)\s*time table/);
+                if (numMatch) {
+                    const num = parseInt(numMatch[1] || numMatch[2] || numMatch[3] || numMatch[4] || numMatch[5] || numMatch[6]);
+                    if (num >= 0 && num <= 100) {
+                        let table = `🔢 ${num} Times Table\n\n`;
+                        for (let i = 1; i <= 12; i++) {
+                            table += `${num} × ${i} = ${num * i}\n`;
+                        }
+                        return table;
+                    }
+                }
+            }
+            
+            // Alternative times table format: "tell me the 5 times table"
+            if ((message.includes('tell me') || message.includes('show me') || message.includes('give me')) && 
+                (message.includes('times') || message.includes('multiplication'))) {
+                const numMatch = message.match(/(\d+)/);
+                if (numMatch) {
+                    const num = parseInt(numMatch[1]);
+                    if (num >= 0 && num <= 100) {
+                        let table = `🔢 ${num} Times Table\n\n`;
+                        for (let i = 1; i <= 12; i++) {
+                            table += `${num} × ${i} = ${num * i}\n`;
+                        }
+                        return table;
+                    }
+                }
+            }
+            
+            // Percentage calculations
+            if (message.includes('percent') && !message.includes('percent of')) {
+                const percentMatch = message.match(/what is (\d+) percent/);
+                if (percentMatch) {
+                    const num = percentMatch[1];
+                    return `🔢 Percentage\n\n${num}% as a decimal is ${num/100}\n${num}% as a fraction is ${num}/100`;
+                }
+            }
+
+            // Pure number expressions
+            if (message.match(/^[\d\s+\-*/().^%]+$/)) {
+                try {
+                    const result = evaluateMath(message);
+                    return `🔢 The answer is: ${result}\n\n${input} = ${result}`;
+                } catch (e) {
+                    return `🔢 I had trouble calculating that. Please check your expression: "${input}"`;
+                }
+            }
+            
+            // Simple multiplication with x (like "5x9" or "what is 5x9")
+            if (message.match(/\d+\s*x\s*\d+/) && !message.includes('times table')) {
+                const mathMatch = message.match(/(\d+)\s*x\s*(\d+)/);
+                if (mathMatch) {
+                    const a = mathMatch[1];
+                    const b = mathMatch[2];
+                    const result = evaluateMath(`${a}*${b}`);
+                    return `🔢 ${a} × ${b} = ${result}\n\nThe answer is ${result}`;
+                }
+            }
+
+            // Word problems and math questions
+            if (message.includes('what is') || message.includes('whats') || message.includes('calculate') || message.includes('solve') || message.includes('equals')) {
+                // Try to extract any number operation number pattern
+                const mathMatch = message.match(/(\d+)\s*([+\-*/×÷x]|plus|minus|times|divided by|take away)\s*(\d+)/);
+                if (mathMatch) {
+                    const [_, a, op, b] = mathMatch;
+                    let operator = '+';
+                    if (op === 'plus' || op === '+') operator = '+';
+                    else if (op === 'minus' || op === 'take away' || op === '-') operator = '-';
+                    else if (op === 'times' || op === '*' || op === '×' || op === 'x') operator = '*';
+                    else if (op === 'divided by' || op === '/' || op === '÷') operator = '/';
+                    
+                    const result = evaluateMath(`${a}${operator}${b}`);
+                    return `🔢 ${a} ${op === 'x' ? '×' : op} ${b} = ${result}\n\nThe answer is ${result}`;
+                }
+            }
+
+            // Greetings
+            if (message.match(/^(hi|hello|hey|greetings|good morning|good afternoon|good evening|sup|yo)/)) {
+                const greetings = [
+                    '👋 Hello! I\'m Cosmo AI, your intelligent assistant. I can answer questions, solve math problems, explain concepts, and generate AI images. What would you like to explore?',
+                    '✨ Hey there! Ready to help with anything you need - from complex calculations to creative image generation. What\'s on your mind?',
+                    '🌟 Greetings! I\'m here to assist with questions, math, science, history, and more. How can I help you today?'
+                ];
+                return greetings[Math.floor(Math.random() * greetings.length)];
+            }
+
+            // Personal questions
+            if (message.includes('who are you') || message.includes('what are you')) {
+                return '✨ I\'m Cosmo AI, an advanced intelligent assistant! I can:\n\n• Solve complex math problems (addition, subtraction, multiplication, division, and more)\n• Answer questions about science, history, geography, and technology\n• Explain concepts clearly\n• Generate AI images from text descriptions\n• Help with programming and coding\n• Provide information on virtually any topic\n\nI\'m designed to be smart, helpful, and accurate. What would you like to know?';
+            }
+
+            if (message.includes('what is your name') || message.includes('what\'s your name') || message.includes('whats your name') || message.includes('what ai is this') || message.includes('what ai are you')) {
+                return '✨ I am Cosmo AI! Your intelligent assistant ready to help with anything you need.';
+            }
+
+            if (message.includes('how are you') || message.includes('how\'s it going') || message.includes('hows it going')) {
+                return '✨ I\'m operating perfectly and ready to help! My circuits are buzzing with knowledge. What can I help you with today?';
+            }
+
+            // Thank you
+            if (message.match(/^(thanks|thank you|thx|ty|appreciate)/)) {
+                return '💫 You\'re very welcome! I\'m always here if you need anything else. Feel free to ask me anything!';
+            }
+
+            // Time/Date
+            if (message.includes('time') || message.includes('clock')) {
+                const now = new Date();
+                return `🕐 Current Time: ${now.toLocaleTimeString()}\n\nDate: ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\nTime zone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
+            }
+
+            if (message.includes('what day') || message.includes('date') || message.includes('today')) {
+                const now = new Date();
+                const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+                return `📅 Today is ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}\n\nDay ${dayOfYear} of ${now.getFullYear()}`;
+            }
+
+            // Science - Physics
+            if (message.includes('speed of light')) {
+                return '🌟 Speed of Light\n\nThe speed of light in a vacuum is 299,792,458 meters per second (approximately 186,282 miles per second).\n\nCommonly denoted as "c", it\'s the universal speed limit - nothing can travel faster! This constant is fundamental to Einstein\'s theory of relativity.';
+            }
+
+            if (message.includes('gravity') && !message.includes('moon')) {
+                return '🌍 Gravity\n\nEarth\'s gravitational acceleration is 9.8 m/s² (32.2 ft/s²). This means objects accelerate toward Earth at this rate when falling.\n\nGravity is one of the four fundamental forces of nature, described by Newton\'s law and Einstein\'s general relativity.';
+            }
+
+            if (message.includes('atom') || message.includes('atomic')) {
+                return '⚛️ Atoms\n\nAtoms are the basic building blocks of matter. They consist of:\n\n• Nucleus: Contains protons (+) and neutrons (neutral)\n• Electrons: Orbit the nucleus (-)\n\nAtoms are incredibly small - about 0.1 nanometers in diameter. Everything around you is made of atoms!';
+            }
+
+            // Science - Space
+            if (message.includes('planet') || message.includes('solar system')) {
+                return '🪐 Solar System Planets (in order from the Sun):\n\n1. Mercury - Smallest, closest to Sun\n2. Venus - Hottest planet\n3. Earth - Our home! 🌍\n4. Mars - The Red Planet\n5. Jupiter - Largest planet (gas giant)\n6. Saturn - Famous for its rings\n7. Uranus - Ice giant, rotates on its side\n8. Neptune - Farthest planet, deep blue\n\nPluto is now classified as a dwarf planet!';
+            }
+
+            if (message.includes('sun') && (message.includes('hot') || message.includes('temperature'))) {
+                return '☀️ Sun Temperature\n\n• Surface: ~5,500°C (9,932°F)\n• Core: ~15 million°C (27 million°F)\n\nThe Sun is a massive ball of plasma, producing energy through nuclear fusion. It contains 99.86% of the solar system\'s mass!';
+            }
+
+            if (message.includes('moon')) {
+                return '🌙 Earth\'s Moon\n\n• Distance: 384,400 km (238,855 miles) from Earth\n• Gravity: 1/6th of Earth\'s (1.62 m/s²)\n• Size: About 1/4 the diameter of Earth\n• Orbit: Takes 27.3 days\n\nThe Moon is Earth\'s only natural satellite and causes ocean tides through its gravitational pull!';
+            }
+
+            // Science - Chemistry
+            if (message.includes('water') && (message.includes('formula') || message.includes('chemical'))) {
+                return '💧 Water (H₂O)\n\nWater\'s chemical formula is H₂O - two hydrogen atoms bonded to one oxygen atom.\n\n• Boiling point: 100°C (212°F)\n• Freezing point: 0°C (32°F)\n• Water is essential for all known life!\n• Covers ~71% of Earth\'s surface';
+            }
+
+            if (message.includes('periodic table') || (message.includes('elements') && !message.includes('periodic table'))) {
+                return '🔬 Chemical Elements\n\nThe periodic table contains 118 confirmed elements. Some notable ones:\n\n• H (Hydrogen) - Lightest element\n• He (Helium) - Second lightest, used in balloons\n• C (Carbon) - Basis of organic life\n• O (Oxygen) - Essential for breathing\n• Fe (Iron) - Most common element on Earth\n• Au (Gold) - Precious metal';
+            }
+
+            // Geography
+            if (message.includes('capital')) {
+                if (message.includes('france')) return '🇫🇷 The capital of France is Paris - known as the "City of Light". Famous for the Eiffel Tower, Louvre Museum, and incredible culture!';
+                if (message.includes('usa') || message.includes('united states') || message.includes('america')) return '🇺🇸 The capital of the United States is Washington, D.C. (District of Columbia), not to be confused with Washington State!';
+                if (message.includes('uk') || message.includes('england') || message.includes('britain')) return '🇬🇧 The capital of the United Kingdom is London, one of the world\'s most influential cities!';
+                if (message.includes('japan')) return '🇯🇵 The capital of Japan is Tokyo, the world\'s most populous metropolitan area!';
+                if (message.includes('china')) return '🇨🇳 The capital of China is Beijing, one of the most populous capital cities in the world!';
+                if (message.includes('germany')) return '🇩🇪 The capital of Germany is Berlin, reunified in 1990 after the fall of the Berlin Wall!';
+                if (message.includes('italy')) return '🇮🇹 The capital of Italy is Rome, known as the "Eternal City" - home to the Colosseum and Vatican City!';
+                if (message.includes('spain')) return '🇪🇸 The capital of Spain is Madrid, located right in the center of the country!';
+                return '🌍 I can tell you the capital of any country! Just ask me: "What is the capital of [country]?"';
+            }
+
+            if (message.includes('largest country') || message.includes('biggest country')) {
+                return '🗺️ Largest Countries by Area:\n\n1. Russia - 17.1 million km²\n2. Canada - 9.98 million km²\n3. USA - 9.83 million km²\n4. China - 9.60 million km²\n5. Brazil - 8.52 million km²\n\nRussia is almost twice the size of Canada!';
+            }
+
+            if (message.includes('ocean')) {
+                return '🌊 Earth\'s 5 Oceans:\n\n1. Pacific - Largest (165 million km²)\n2. Atlantic - Second largest\n3. Indian - Warmest ocean\n4. Southern (Antarctic) - Surrounds Antarctica\n5. Arctic - Smallest, coldest\n\nOceans cover about 71% of Earth\'s surface!';
+            }
+
+            // History
+            if (message.includes('world war') || message.includes('ww1') || message.includes('ww2')) {
+                return '📜 World Wars\n\nWWI (1914-1918)\n• Known as "The Great War"\n• ~20 million deaths\n• Ended with Treaty of Versailles\n\nWWII (1939-1945)\n• Deadliest conflict in history\n• ~70-85 million deaths\n• Ended with Allied victory\n• Led to formation of United Nations';
+            }
+
+            if (message.includes('who') && (message.includes('einstein') || message.includes('albert einstein'))) {
+                return '🧠 Albert Einstein (1879-1955)\n\nGerman-born theoretical physicist who revolutionized our understanding of the universe.\n\nFamous for:\n• Theory of Relativity (E=mc²)\n• Explanation of photoelectric effect\n• Won Nobel Prize in Physics (1921)\n\nWidely regarded as one of the most influential scientists of all time!';
+            }
+
+            if (message.includes('who') && message.includes('newton')) {
+                return '🍎 Isaac Newton (1643-1727)\n\nEnglish mathematician, physicist, and astronomer.\n\nFamous for:\n• Laws of Motion\n• Universal Gravitation\n• Calculus (co-inventor)\n• Optics and light theory\n\nOne of the most influential scientists in history!';
+            }
+
+            // Technology & Computing
+            if (message.includes('what') && message.includes('ai')) {
+                return '🤖 Artificial Intelligence (AI)\n\nAI is technology that enables computers to simulate human intelligence:\n\n• Machine Learning: Systems that learn from data\n• Neural Networks: Inspired by human brains\n• Natural Language Processing: Understanding human language\n• Computer Vision: Interpreting images\n\nI\'m an example of AI designed to help answer your questions and assist you!';
+            }
+
+            if (message.includes('internet') || message.includes('world wide web')) {
+                return '🌐 The Internet\n\nThe internet is a global network of connected computers:\n\n• Invented: Late 1960s (ARPANET)\n• World Wide Web: Created by Tim Berners-Lee in 1989\n• Users: Over 5 billion people worldwide\n• Speed: Can transmit data at speeds up to 100+ Gbps\n\nIt revolutionized communication, commerce, and information sharing!';
+            }
+
+            // Programming
+            if (message.includes('python') || message.includes('javascript') || message.includes('programming') || message.includes('coding')) {
+                return '💻 Programming Languages\n\nPopular languages and their uses:\n\n• Python 🐍 - AI, data science, web development, automation\n• JavaScript - Web development (frontend & backend)\n• Java - Enterprise applications, Android apps\n• C++ - Game development, system programming\n• C# - Windows apps, game development (Unity)\n• HTML/CSS - Web page structure and styling\n\nWhich language are you interested in learning?';
+            }
+
+            // Biology
+            if (message.includes('dna') || message.includes('gene')) {
+                return '🧬 DNA (Deoxyribonucleic Acid)\n\nDNA is the molecule that carries genetic instructions:\n\n• Structure: Double helix (discovered by Watson & Crick)\n• Bases: Adenine, Thymine, Guanine, Cytosine (A, T, G, C)\n• Function: Stores genetic information\n• Human genome: ~3 billion base pairs\n\nDNA makes you uniquely you!';
+            }
+
+            if (message.includes('heart') && message.includes('beat')) {
+                return '❤️ Heart Rate\n\n• Resting: 60-100 beats per minute (adults)\n• Daily: ~100,000 beats per day\n• Lifetime: ~2.5 billion beats in 70 years\n• Blood pumped: ~5 liters per minute\n\nYour heart is an amazing muscle that never stops working!';
+            }
+
+            // Mathematics
+            if (message.includes('pi') && !message.includes('pizza')) {
+                return '🥧 Pi (π)\n\nπ ≈ 3.14159265359...\n\n• Ratio of circle\'s circumference to diameter\n• Irrational number (never ends or repeats)\n• Used in geometry, physics, engineering\n• Pi Day: March 14 (3/14)\n\nFun fact: π has been calculated to over 100 trillion digits!';
+            }
+
+            if (message.includes('fibonacci')) {
+                return '🌀 Fibonacci Sequence\n\n0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89...\n\nEach number is the sum of the two preceding ones.\n\nFound in nature:\n• Spiral shells\n• Flower petals\n• Tree branches\n• Galaxy spirals\n\nNamed after Italian mathematician Leonardo Fibonacci!';
+            }
+
+            // Help/capabilities
+            if (message.includes('what can you do') || message.includes('your capabilities') || message.includes('help me')) {
+                return '✨ Cosmo AI Capabilities\n\nI\'m a highly intelligent assistant that can help with:\n\n🔢 Mathematics\n• All operations: +, -, ×, ÷, powers, percentages\n• Word problems and calculations\n• Times tables (try "5 times table")\n• Square roots and advanced math\n\n🔬 Science\n• Physics, Chemistry, Biology, Astronomy\n• Explanations and facts\n\n🌍 Geography & History\n• Countries, capitals, events\n• Historical figures and dates\n\n💻 Technology\n• Programming, AI, computers\n• How things work\n\n🎨 Image Generation\n• Create AI images from descriptions\n• Switch to Image Mode!\n\n📚 General Knowledge\n• Definitions, explanations\n• Animals, sports, food, colors\n• Fun facts and trivia\n• Answering any question\n\nJust ask me anything!';
+            }
+
+            // Jokes
+            if (message.includes('joke') || message.includes('make me laugh') || message.includes('funny')) {
+                const jokes = [
+                    '😄 Why did the programmer quit his job?\nBecause he didn\'t get arrays! (a raise)',
+                    '🐟 What do you call a fish with no eyes?\nA fsh!',
+                    '⚛️ Why don\'t scientists trust atoms?\nBecause they make up everything!',
+                    '🌊 What did the ocean say to the beach?\nNothing, it just waved!',
+                    '📘 Why did the math book look sad?\nBecause it had too many problems!',
+                    '💻 Why do programmers prefer dark mode?\nBecause light attracts bugs!',
+                    '🌙 Why did the moon skip dinner?\nBecause it was full!',
+                    '🔋 What\'s a computer\'s favorite snack?\nMicrochips!',
+                    '📐 Why was six afraid of seven?\nBecause seven eight (ate) nine!',
+                    '🌟 What do you call a space detective?\nA star-chaser!'
+                ];
+                return jokes[Math.floor(Math.random() * jokes.length)];
+            }
+
+            // Weather (simulated)
+            if (message.includes('weather')) {
+                return '🌤️ I don\'t have real-time weather data, but I can explain:\n\nWeather vs Climate:\n• Weather: Short-term atmospheric conditions\n• Climate: Long-term weather patterns\n\nFor current weather, check weather.com or your local weather service!';
+            }
+
+            // Conversion
+            if (message.includes('convert') || message.includes('how many')) {
+                if (message.includes('feet') && message.includes('meter')) {
+                    return '📏 Conversion\n\n• 1 foot = 0.3048 meters\n• 1 meter = 3.28084 feet\n\nExample: 6 feet = 1.83 meters';
+                }
+                if (message.includes('mile') && message.includes('kilometer')) {
+                    return '📏 Conversion\n\n• 1 mile = 1.609 kilometers\n• 1 kilometer = 0.621 miles\n\nExample: 10 miles = 16.09 kilometers';
+                }
+                if (message.includes('pound') && message.includes('kilogram')) {
+                    return '⚖️ Conversion\n\n• 1 pound = 0.4536 kilograms\n• 1 kilogram = 2.2046 pounds\n\nExample: 150 pounds = 68 kilograms';
+                }
+                if (message.includes('celsius') && message.includes('fahrenheit')) {
+                    return '🌡️ Temperature Conversion\n\n• Celsius to Fahrenheit: (°C × 9/5) + 32\n• Fahrenheit to Celsius: (°F - 32) × 5/9\n\nExample: 25°C = 77°F';
+                }
+                if (message.includes('inch') && message.includes('centimeter')) {
+                    return '📏 Conversion\n\n• 1 inch = 2.54 centimeters\n• 1 centimeter = 0.3937 inches\n\nExample: 10 inches = 25.4 cm';
+                }
+            }
+
+            // Animals
+            if (message.includes('fastest animal') || (message.includes('fast') && message.includes('animal'))) {
+                return '🐆 Fastest Animals\n\nOn Land: Cheetah - 70 mph (112 km/h)\nIn Air: Peregrine Falcon - 240 mph (386 km/h) when diving\nIn Water: Black Marlin - 80 mph (129 km/h)\n\nThe cheetah can accelerate from 0 to 60 mph in just 3 seconds!';
+            }
+
+            if (message.includes('largest animal') || message.includes('biggest animal')) {
+                return '🐋 Largest Animal\n\nThe Blue Whale is the largest animal ever known to exist!\n\n• Length: Up to 100 feet (30 meters)\n• Weight: Up to 200 tons\n• Heart: Size of a small car\n• Tongue: Weighs as much as an elephant\n\nThey eat tiny krill despite their massive size!';
+            }
+
+            if (message.includes('tallest animal')) {
+                return '🦒 Tallest Animal\n\nThe Giraffe is the tallest land animal!\n\n• Height: Up to 18 feet (5.5 meters)\n• Neck: 6 feet long but only has 7 vertebrae (same as humans!)\n• Heart: Weighs 25 pounds to pump blood up that long neck\n• Run: Can run up to 35 mph';
+            }
+
+            if ((message.includes('how long') || message.includes('lifespan')) && message.includes('dog')) {
+                return '🐕 Dog Lifespan\n\nAverage: 10-13 years\n\nSmaller breeds: 12-16 years\nMedium breeds: 10-14 years\nLarge breeds: 8-12 years\n\nThe oldest dog ever recorded lived to be 29 years old!';
+            }
+
+            if ((message.includes('how long') || message.includes('lifespan')) && message.includes('cat')) {
+                return '🐱 Cat Lifespan\n\nIndoor cats: 12-18 years\nOutdoor cats: 3-10 years\n\nWith proper care, many cats live into their 20s! The oldest cat on record lived to be 38 years old.';
+            }
+
+            // Food and Nutrition
+            if (message.includes('vitamin c') || (message.includes('vitamin') && message.includes('c'))) {
+                return '🍊 Vitamin C\n\nAlso known as ascorbic acid, it\'s essential for:\n\n• Immune system function\n• Collagen production\n• Iron absorption\n• Wound healing\n\nBest sources: Citrus fruits, strawberries, bell peppers, broccoli\n\nDaily recommended: 75-90 mg for adults';
+            }
+
+            if (message.includes('protein') && (message.includes('what is') || message.includes('food'))) {
+                return '🥩 Protein\n\nEssential nutrient made of amino acids, needed for:\n\n• Building muscle\n• Repairing tissues\n• Making enzymes and hormones\n\nBest sources:\n• Animal: Meat, fish, eggs, dairy\n• Plant: Beans, lentils, nuts, tofu\n\nAdults need about 0.8g per kg of body weight daily';
+            }
+
+            if (message.includes('calories') && message.includes('burn')) {
+                return '🔥 Calorie Burning\n\nAverage calories burned per hour:\n\n• Walking: 200-300\n• Running: 600-800\n• Swimming: 400-700\n• Cycling: 400-600\n• Sleeping: 50-70\n\nYour metabolism also burns 1,200-1,800 calories daily just to keep your body functioning!';
+            }
+
+            // Sports and Games
+            if (message.includes('world cup') || (message.includes('soccer') && message.includes('championship'))) {
+                return '⚽ FIFA World Cup\n\nThe most prestigious soccer tournament:\n\n• Held every 4 years\n• 32 teams compete (expanding to 48 in 2026)\n• Most wins: Brazil (5 times)\n• Most watched event: Over 3.5 billion viewers\n\nFirst World Cup was held in Uruguay in 1930!';
+            }
+
+            if (message.includes('olympic') || message.includes('olympics')) {
+                return '🏅 Olympic Games\n\nThe world\'s foremost sports competition:\n\n• Summer and Winter Olympics alternate every 2 years\n• Modern Olympics started: 1896 in Athens\n• Ancient Olympics: 776 BC in Greece\n• Over 200 nations participate\n• 300+ events in Summer Olympics\n\nOlympic motto: "Citius, Altius, Fortius" (Faster, Higher, Stronger)';
+            }
+
+            if (message.includes('super bowl')) {
+                return '🏈 Super Bowl\n\nNFL championship game:\n\n• Most watched TV event in USA\n• Held annually in February\n• Most wins: New England Patriots & Pittsburgh Steelers (6 each)\n• Halftime show is legendary!\n• Super Bowl rings are given to winners\n\nAverage viewers: Over 100 million people!';
+            }
+
+            if (message.includes('basketball') && (message.includes('hoop') || message.includes('high'))) {
+                return '🏀 Basketball Hoop Height\n\nStandard height: 10 feet (3.05 meters)\n\nThis has been the regulation height since basketball was invented in 1891!\n\nInteresting facts:\n• Court length: 94 feet\n• Ball circumference: 29.5 inches\n• Free throw line: 15 feet from backboard';
+            }
+
+            // Colors and Art
+            if (message.includes('primary color')) {
+                return '🎨 Primary Colors\n\nIn Art (RYB model):\n• Red\n• Yellow  \n• Blue\n\nIn Light (RGB model):\n• Red\n• Green\n• Blue\n\nPrimary colors cannot be created by mixing other colors, but they can be combined to create all other colors!';
+            }
+
+            if (message.includes('rainbow') && (message.includes('color') || message.includes('order'))) {
+                return '🌈 Rainbow Colors (in order)\n\n1. Red\n2. Orange\n3. Yellow\n4. Green\n5. Blue\n6. Indigo\n7. Violet\n\nRemember: ROY G. BIV\n\nRainbows are formed when sunlight is refracted, reflected, and dispersed in water droplets!';
+            }
+
+            // Days, Months, Time
+            if (message.includes('days in a week') || message.includes('how many days') && message.includes('week')) {
+                return '📅 Days of the Week\n\nThere are 7 days in a week:\n\n1. Monday\n2. Tuesday\n3. Wednesday\n4. Thursday\n5. Friday\n6. Saturday\n7. Sunday\n\nThe 7-day week originated in ancient Babylon!';
+            }
+
+            if (message.includes('months') || (message.includes('how many') && message.includes('month'))) {
+                return '📆 Months of the Year\n\nThere are 12 months:\n\n1. January (31 days)\n2. February (28/29 days)\n3. March (31 days)\n4. April (30 days)\n5. May (31 days)\n6. June (30 days)\n7. July (31 days)\n8. August (31 days)\n9. September (30 days)\n10. October (31 days)\n11. November (30 days)\n12. December (31 days)\n\nRemember: "30 days has September, April, June, and November..."';
+            }
+
+            if (message.includes('leap year')) {
+                return '📅 Leap Year\n\nA year with 366 days instead of 365!\n\n• Happens every 4 years\n• Extra day: February 29th\n• Why: Earth\'s orbit is 365.25 days\n• Exception: Years divisible by 100 aren\'t leap years, unless divisible by 400\n\nNext leap year after 2024: 2028\n\n2000 was a leap year, but 1900 wasn\'t!';
+            }
+
+            if (message.includes('hours in a day') || (message.includes('how many') && message.includes('hour'))) {
+                return '🕐 Hours in a Day\n\nThere are 24 hours in a day!\n\n• 1 hour = 60 minutes\n• 1 minute = 60 seconds\n• 1 day = 1,440 minutes\n• 1 day = 86,400 seconds\n\nThe 24-hour day comes from ancient Egyptian timekeeping!';
+            }
+
+            // More Science
+            if (message.includes('photosynthesis')) {
+                return '🌱 Photosynthesis\n\nThe process plants use to make food from sunlight:\n\nFormula: 6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂\n\nIn simple terms:\n• Plants take in carbon dioxide and water\n• Using sunlight energy\n• They produce glucose (sugar) and oxygen\n\nThis process happens in chloroplasts and is why plants are green!';
+            }
+
+            if (message.includes('evaporation') || (message.includes('water') && message.includes('cycle'))) {
+                return '💧 Water Cycle\n\nThe continuous movement of water on Earth:\n\n1. Evaporation: Water turns to vapor\n2. Condensation: Vapor forms clouds\n3. Precipitation: Rain/snow falls\n4. Collection: Water gathers in oceans/lakes\n\nThis cycle has been happening for billions of years and recycles all water on Earth!';
+            }
+
+            if (message.includes('skeleton') || (message.includes('bones') && message.includes('human'))) {
+                return '💀 Human Skeleton\n\nAdults have 206 bones:\n\n• Longest: Femur (thighbone)\n• Smallest: Stapes (in the ear, 2-3mm)\n• Babies: Born with 270 bones (some fuse together)\n• Hands: 27 bones each\n• Feet: 26 bones each\n\nBones are stronger than steel but 5x lighter!';
+            }
+
+            // More Geography
+            if (message.includes('tallest mountain') || (message.includes('highest') && message.includes('mountain'))) {
+                return '⛰️ Tallest Mountain\n\nMount Everest is Earth\'s highest mountain:\n\n• Height: 29,032 feet (8,849 meters)\n• Location: Nepal/Tibet border\n• First summit: 1953 by Edmund Hillary & Tenzing Norgay\n• Name: Called "Sagarmatha" in Nepali, "Chomolungma" in Tibetan\n\nOver 6,000 people have reached the summit!';
+            }
+
+            if (message.includes('deepest') && message.includes('ocean')) {
+                return '🌊 Deepest Ocean Point\n\nMariana Trench in the Pacific Ocean:\n\n• Deepest point: Challenger Deep\n• Depth: 36,200 feet (11,034 meters)\n• Pressure: Over 1,000 times sea level\n• Only 3 people have reached the bottom\n\nIf Mount Everest were placed in the trench, there would still be over a mile of water above it!';
+            }
+
+            if (message.includes('desert') && (message.includes('largest') || message.includes('biggest'))) {
+                return '🏜️ Largest Deserts\n\n1. Antarctic Desert - 5.5 million sq mi (cold desert!)\n2. Arctic Desert - 5.4 million sq mi\n3. Sahara Desert - 3.6 million sq mi (largest hot desert)\n\nYes, Antarctica is technically a desert because it gets very little precipitation!\n\nThe Sahara is roughly the size of the United States!';
+            }
+
+            // More History
+            if (message.includes('declaration of independence') || (message.includes('independence') && message.includes('usa'))) {
+                return '📜 Declaration of Independence\n\nAmerica\'s founding document:\n\n• Date: July 4, 1776\n• Written by: Thomas Jefferson (primary author)\n• Signed: 56 delegates\n• Purpose: Declared independence from British rule\n\n"We hold these truths to be self-evident, that all men are created equal..."\n\nJuly 4th is celebrated as Independence Day!';
+            }
+
+            if (message.includes('columbus') || (message.includes('discover') && message.includes('america'))) {
+                return '🌎 Christopher Columbus\n\nItalian explorer (1451-1506):\n\n• Voyage: 1492 across the Atlantic\n• Ships: Niña, Pinta, Santa María\n• Goal: Find route to Asia\n• Actually: Reached the Caribbean islands\n\nNote: Indigenous peoples lived in the Americas for thousands of years before Columbus. Vikings also reached North America around 1000 AD!';
+            }
+
+            // Technology
+            if (message.includes('first computer')) {
+                return '💻 First Computer\n\nENIAC (Electronic Numerical Integrator and Computer):\n\n• Built: 1945\n• Weight: 30 tons\n• Size: Filled an entire room\n• Speed: Could do 5,000 additions per second\n• Cost: $500,000 (1940s dollars)\n\nToday\'s smartphones are millions of times more powerful!';
+            }
+
+            if (message.includes('www') || message.includes('world wide web') && message.includes('invent')) {
+                return '🌐 World Wide Web\n\nInvented by Tim Berners-Lee:\n\n• When: 1989\n• Where: CERN in Switzerland\n• First website: August 6, 1991\n• Purpose: Share information between scientists\n\nThe web is built on the internet (which existed since the 1960s) but made it accessible to everyone!';
+            }
+
+            if (message.includes('smartphone') || (message.includes('first') && message.includes('iphone'))) {
+                return '📱 First iPhone\n\nRevolutionized mobile phones:\n\n• Release: June 29, 2007\n• Created by: Apple (Steve Jobs)\n• Price: $499-599\n• Screen: 3.5 inches\n• Storage: 4GB-8GB\n\nIt combined a phone, iPod, and internet device into one!\n\nOver 2.2 billion iPhones have been sold since!';
+            }
+
+            // Fun Facts
+            if (message.includes('honey') && (message.includes('expire') || message.includes('spoil'))) {
+                return '🍯 Honey Never Spoils\n\nHoney is the only food that never goes bad!\n\n• Why: Low moisture content and acidic pH\n• Discovery: 3,000-year-old honey found in Egyptian tombs was still edible\n• Properties: Natural preservative with antibacterial qualities\n\nProperly stored honey can last indefinitely!';
+            }
+
+            if (message.includes('banana') && message.includes('berry')) {
+                return '🍌 Bananas Are Berries!\n\nBotanically, bananas are berries, but strawberries aren\'t!\n\nBerry definition (botanical):\n• Fruit from one flower with one ovary\n• Multiple seeds\n• Soft flesh\n\nTrue berries: Bananas, grapes, tomatoes, watermelons\nNot berries: Strawberries, raspberries, blackberries (they\'re "aggregate fruits")';
+            }
+
+            if (message.includes('diamonds') && message.includes('form')) {
+                return '💎 Diamond Formation\n\nDiamonds form deep underground:\n\n• Depth: 90-120 miles below Earth\'s surface\n• Temperature: 2,000°F (1,050°C)\n• Pressure: 725,000+ pounds per square inch\n• Time: 1-3 billion years\n• Material: Pure carbon atoms\n\nDiamonds are the hardest natural substance on Earth!';
+            }
+
+            // General conversational response with helpful suggestions
+            return `💭 Great question! While I have extensive knowledge on many topics, I want to give you the most accurate answer.\n\nI'm best at:\n• 🔢 Math (try "156 * 23" or "1000 - 347")\n• 🔬 Science ("what is gravity?")\n• 🌍 Geography ("capital of Japan")\n• 📚 Definitions ("what is AI?")\n• 🎨 Image generation (switch to Image Mode!)\n• ⏰ Time/Date ("what time is it?")\n\nRegarding "${input.substring(0, 50)}${input.length > 50 ? '...' : ''}":\nCould you rephrase or be more specific? I'm here to help! 😊`;
+        }
+
+        function evaluateMath(expression) {
+            // Clean the expression
+            expression = expression
+                .replace(/\s/g, '')
+                .replace(/×/g, '*')
+                .replace(/÷/g, '/')
+                .replace(/\^/g, '**')
+                .replace(/,/g, '');
+            
+            // Validate it only contains safe characters
+            if (!/^[\d+\-*/.()%*]+$/.test(expression)) {
+                throw new Error('Invalid expression');
+            }
+            
+            // Check for division by zero before evaluation
+            if (expression.match(/\/\s*0(?!\d)/) || expression.match(/\/0$/)) {
+                return 'Cannot divide by zero!';
+            }
+            
+            // Check for empty parentheses
+            if (expression.includes('()')) {
+                throw new Error('Invalid expression: empty parentheses');
+            }
+            
+            // Check for double operators (except ** for power)
+            if (expression.match(/[+\-*/%]{3,}/) || expression.match(/[+\-/%]{2,}/)) {
+                throw new Error('Invalid expression: double operators');
+            }
+            
+            try {
+                // Use Function constructor for safe evaluation
+                const result = Function('"use strict"; return (' + expression + ')')();
+                
+                // Handle special cases
+                if (!isFinite(result)) {
+                    return 'Result is infinite or undefined';
+                }
+                
+                if (isNaN(result)) {
+                    return 'Invalid calculation';
+                }
+                
+                // Round to reasonable precision (handle very small numbers)
+                if (Math.abs(result) < 0.000000001 && result !== 0) {
+                    return result.toExponential(6);
+                }
+                
+                return Math.round(result * 1000000000) / 1000000000;
+            } catch (e) {
+                throw new Error('Cannot evaluate expression');
+            }
+        }
+
+        // ── Accurate hardcoded drawing functions for known characters ──────────
+
+        function drawEnderman(ctx, W, H) {
+            // The End background
+            const bg = ctx.createLinearGradient(0, 0, 0, H);
+            bg.addColorStop(0, '#040010');
+            bg.addColorStop(1, '#160030');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, W, H);
+
+            // End-stone floor (pale yellow-gray blocks)
+            for (let i = 0; i < 11; i++) {
+                ctx.fillStyle = (i % 2 === 0) ? '#b5b55a' : '#a8a84e';
+                ctx.fillRect(i * 80 - 40, H - 55, 80, 55);
+                ctx.strokeStyle = '#7a7a30';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(i * 80 - 40, H - 55, 80, 55);
+            }
+
+            // Stars
+            for (let i = 0; i < 60; i++) {
+                const sx = Math.random() * W, sy = Math.random() * (H * 0.75);
+                ctx.fillStyle = `rgba(255,255,255,${0.3 + Math.random() * 0.7})`;
+                ctx.fillRect(sx, sy, Math.random() < 0.3 ? 2 : 1, Math.random() < 0.3 ? 2 : 1);
+            }
+
+            // Purple particles around Enderman
+            const particleColors = ['#7700cc','#9900ff','#aa33ff','#6600bb'];
+            for (let i = 0; i < 35; i++) {
+                const px = W/2 - 130 + Math.random() * 260;
+                const py = 40 + Math.random() * (H - 120);
+                const ps = 2 + Math.random() * 4;
+                ctx.fillStyle = particleColors[Math.floor(Math.random() * particleColors.length)];
+                ctx.globalAlpha = 0.4 + Math.random() * 0.6;
+                ctx.fillRect(px, py, ps, ps);
+            }
+            ctx.globalAlpha = 1;
+
+            // ── Enderman body (pure black, very tall and thin) ──
+            const cx = W / 2;
+            const floor = H - 55;   // top of floor
+            const BLACK  = '#080808';
+            const SHADE  = '#1c1c1c';
+
+            // Long arms hanging all the way down (drawn first, behind body)
+            // Left arm
+            ctx.fillStyle = BLACK;
+            ctx.fillRect(cx - 46, floor - 310, 14, 230);
+            ctx.fillStyle = SHADE;
+            ctx.fillRect(cx - 46, floor - 310, 4, 230);
+            // Right arm
+            ctx.fillStyle = BLACK;
+            ctx.fillRect(cx + 32, floor - 310, 14, 230);
+            ctx.fillStyle = SHADE;
+            ctx.fillRect(cx + 42, floor - 310, 4, 230);
+
+            // Left leg
+            ctx.fillStyle = BLACK;
+            ctx.fillRect(cx - 24, floor - 160, 18, 160);
+            ctx.fillStyle = SHADE;
+            ctx.fillRect(cx - 24, floor - 160, 5, 160);
+            // Right leg
+            ctx.fillStyle = BLACK;
+            ctx.fillRect(cx + 6,  floor - 160, 18, 160);
+            ctx.fillStyle = SHADE;
+            ctx.fillRect(cx + 20, floor - 160, 4, 160);
+
+            // Torso
+            ctx.fillStyle = BLACK;
+            ctx.fillRect(cx - 28, floor - 320, 56, 160);
+            ctx.fillStyle = SHADE;
+            ctx.fillRect(cx + 18, floor - 320, 10, 160);
+            ctx.fillRect(cx - 28, floor - 165, 56, 8);
+
+            // Head
+            ctx.fillStyle = BLACK;
+            ctx.fillRect(cx - 34, floor - 400, 68, 80);
+            ctx.fillStyle = SHADE;
+            ctx.fillRect(cx + 24, floor - 400, 10, 80);
+            ctx.fillRect(cx - 34, floor - 324, 68, 8);
+
+            // Glowing purple eyes
+            ctx.shadowColor = '#9900ff';
+            ctx.shadowBlur = 16;
+            ctx.fillStyle = '#aa00ff';
+            ctx.fillRect(cx - 26, floor - 375, 18, 8);
+            ctx.fillRect(cx + 8,  floor - 375, 18, 8);
+            ctx.shadowBlur = 0;
+            // Bright centre of eyes
+            ctx.fillStyle = '#dd88ff';
+            ctx.fillRect(cx - 22, floor - 373, 10, 4);
+            ctx.fillRect(cx + 12, floor - 373, 10, 4);
+
+            // Label
+            ctx.fillStyle = '#9900ff';
+            ctx.shadowColor = '#9900ff';
+            ctx.shadowBlur = 8;
+            ctx.font = 'bold 22px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('ENDERMAN', W / 2, 32);
+            ctx.shadowBlur = 0;
+        }
+
+        function drawZombie(ctx, W, H) {
+            // Day sky
+            const bg = ctx.createLinearGradient(0, 0, 0, H);
+            bg.addColorStop(0, '#87CEEB'); bg.addColorStop(1, '#c0e8ff');
+            ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+            // Grass
+            for (let i = 0; i < 11; i++) {
+                ctx.fillStyle = (i%2===0)?'#5a9e2f':'#4d8a25';
+                ctx.fillRect(i*80-40, H-60, 80, 60);
+                ctx.strokeStyle='#3a6a10'; ctx.lineWidth=1.5;
+                ctx.strokeRect(i*80-40, H-60, 80, 60);
+            }
+            const cx=W/2, floor=H-60;
+            const SKIN='#7ab37a', DARK='#5a8a5a', BLUE='#4466aa', GRAY='#888';
+            // Legs
+            ctx.fillStyle=GRAY; ctx.fillRect(cx-24,floor-120,20,120);
+            ctx.fillRect(cx+4,floor-120,20,120);
+            // Body
+            ctx.fillStyle=BLUE; ctx.fillRect(cx-30,floor-240,60,120);
+            ctx.fillStyle='#3355aa'; ctx.fillRect(cx+20,floor-240,10,120);
+            // Arms stretched forward
+            ctx.fillStyle=SKIN; ctx.fillRect(cx-75,floor-230,42,18); // left
+            ctx.fillRect(cx+33,floor-230,42,18); // right
+            // Head
+            ctx.fillStyle=SKIN; ctx.fillRect(cx-28,floor-300,56,60);
+            ctx.fillStyle=DARK; ctx.fillRect(cx+20,floor-300,8,60);
+            // Eyes (glowing)
+            ctx.fillStyle='#ff4444'; ctx.fillRect(cx-18,floor-282,14,10);
+            ctx.fillRect(cx+4,floor-282,14,10);
+            ctx.fillStyle='#222'; ctx.fillRect(cx-6,floor-268,12,8); // mouth
+            ctx.fillStyle='#5a9e2f'; ctx.font='bold 20px monospace'; ctx.textAlign='center';
+            ctx.fillText('ZOMBIE',W/2,30);
+        }
+
+        function drawSkeleton(ctx, W, H) {
+            const bg = ctx.createLinearGradient(0,0,0,H);
+            bg.addColorStop(0,'#0a0a1a'); bg.addColorStop(1,'#1a1a3a');
+            ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+            for(let i=0;i<60;i++){
+                const sx=Math.random()*W, sy=Math.random()*H*0.8;
+                ctx.fillStyle=`rgba(255,255,255,${0.3+Math.random()*0.7})`;
+                ctx.fillRect(sx,sy,1,1);
+            }
+            for(let i=0;i<11;i++){
+                ctx.fillStyle=(i%2===0)?'#444':'#333';
+                ctx.fillRect(i*80-40,H-55,80,55);
+                ctx.strokeStyle='#222'; ctx.lineWidth=1.5;
+                ctx.strokeRect(i*80-40,H-55,80,55);
+            }
+            const cx=W/2, floor=H-55, BONE='#d4d0c0', DARK='#aaa89a';
+            // Legs (thin)
+            ctx.fillStyle=BONE; ctx.fillRect(cx-20,floor-130,14,130);
+            ctx.fillRect(cx+6,floor-130,14,130);
+            ctx.fillStyle=DARK; ctx.fillRect(cx-7,floor-130,3,130); ctx.fillRect(cx+18,floor-130,3,130);
+            // Body (ribcage)
+            ctx.fillStyle=BONE; ctx.fillRect(cx-24,floor-250,48,120);
+            // Ribs
+            ctx.strokeStyle=DARK; ctx.lineWidth=3;
+            for(let r=0;r<5;r++){
+                ctx.beginPath(); ctx.moveTo(cx-20,floor-240+r*18); ctx.lineTo(cx+20,floor-240+r*18); ctx.stroke();
+            }
+            // Arms (bow held to right)
+            ctx.fillStyle=BONE; ctx.fillRect(cx-42,floor-245,14,100); // left arm
+            ctx.fillRect(cx+28,floor-245,14,100); // right arm
+            // Bow
+            ctx.strokeStyle='#8B4513'; ctx.lineWidth=4;
+            ctx.beginPath(); ctx.arc(cx+80,floor-210,60,Math.PI*0.6,Math.PI*1.4); ctx.stroke();
+            ctx.strokeStyle='#ccc'; ctx.lineWidth=1.5;
+            ctx.beginPath(); ctx.moveTo(cx+80,floor-170); ctx.lineTo(cx+80,floor-250); ctx.stroke();
+            // Arrow
+            ctx.strokeStyle='#8B4513'; ctx.lineWidth=2;
+            ctx.beginPath(); ctx.moveTo(cx+40,floor-210); ctx.lineTo(cx+75,floor-210); ctx.stroke();
+            // Head
+            ctx.fillStyle=BONE; ctx.fillRect(cx-24,floor-310,48,60);
+            // Skull features
+            ctx.fillStyle='#222'; ctx.fillRect(cx-14,floor-295,12,12); ctx.fillRect(cx+2,floor-295,12,12);
+            ctx.fillRect(cx-8,floor-274,4,8); ctx.fillRect(cx-2,floor-274,4,8); ctx.fillRect(cx+4,floor-274,4,8);
+            ctx.fillStyle=BONE; ctx.font='bold 20px monospace'; ctx.textAlign='center';
+            ctx.fillText('SKELETON',W/2,30);
+        }
+
+        function drawSteve(ctx, W, H) {
+            const bg = ctx.createLinearGradient(0,0,0,H);
+            bg.addColorStop(0,'#87CEEB'); bg.addColorStop(1,'#ddf');
+            ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+            for(let i=0;i<11;i++){
+                ctx.fillStyle=(i%2===0)?'#5a9e2f':'#4d8a25';
+                ctx.fillRect(i*80-40,H-60,80,60);
+                ctx.strokeStyle='#3a6a10'; ctx.lineWidth=1.5; ctx.strokeRect(i*80-40,H-60,80,60);
+            }
+            const cx=W/2, floor=H-60;
+            ctx.fillStyle='#4A3728'; ctx.fillRect(cx-28,floor-50,24,50); ctx.fillRect(cx+4,floor-50,24,50);
+            ctx.fillStyle='#5c6bc0'; ctx.fillRect(cx-36,floor-170,72,120);
+            ctx.fillStyle='#3a4999'; ctx.fillRect(cx+20,floor-170,16,120);
+            ctx.fillStyle='#5c6bc0'; ctx.fillRect(cx-52,floor-160,16,80); ctx.fillRect(cx+36,floor-160,16,80);
+            ctx.fillStyle='#C68642'; ctx.fillRect(cx-30,floor-260,60,90);
+            ctx.fillStyle='#a06830'; ctx.fillRect(cx+20,floor-260,10,90);
+            ctx.fillStyle='#222'; ctx.fillRect(cx-16,floor-240,12,14); ctx.fillRect(cx+4,floor-240,12,14);
+            ctx.fillStyle='#fff'; ctx.fillRect(cx-13,floor-238,5,5); ctx.fillRect(cx+7,floor-238,5,5);
+            ctx.fillStyle='#4A3728'; ctx.fillRect(cx-20,floor-216,40,10);
+            ctx.fillStyle='#3a3010'; ctx.fillRect(cx-30,floor-300,60,40);
+            ctx.fillStyle='#C68642'; ctx.font='bold 20px monospace'; ctx.textAlign='center';
+            ctx.fillText('STEVE',W/2,30);
+        }
+
+        function drawCreeper(ctx, W, H) {
+            const bg = ctx.createLinearGradient(0,0,0,H);
+            bg.addColorStop(0,'#87CEEB'); bg.addColorStop(1,'#b0d8f0');
+            ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+            for(let i=0;i<11;i++){
+                ctx.fillStyle=(i%2===0)?'#5a9e2f':'#4d8a25';
+                ctx.fillRect(i*80-40,H-60,80,60);
+                ctx.strokeStyle='#3a6a10'; ctx.lineWidth=1.5; ctx.strokeRect(i*80-40,H-60,80,60);
+            }
+            const cx=W/2, floor=H-60;
+            const GREEN='#4CAF50', DARK='#388E3C';
+            // 4 legs
+            ctx.fillStyle=GREEN;
+            ctx.fillRect(cx-50,floor-100,30,100); ctx.fillRect(cx+20,floor-100,30,100);
+            ctx.fillStyle=DARK; ctx.fillRect(cx-22,floor-100,4,100); ctx.fillRect(cx+48,floor-100,4,100);
+            // Body
+            ctx.fillStyle=GREEN; ctx.fillRect(cx-50,floor-220,100,120);
+            ctx.fillStyle=DARK; ctx.fillRect(cx+38,floor-220,12,120);
+            // Head
+            ctx.fillStyle=GREEN; ctx.fillRect(cx-60,floor-360,120,140);
+            ctx.fillStyle=DARK; ctx.fillRect(cx+48,floor-360,12,140);
+            // Frown face
+            ctx.fillStyle='#1a1a1a';
+            ctx.fillRect(cx-38,floor-320,26,30); // left eye
+            ctx.fillRect(cx+12,floor-320,26,30); // right eye
+            // Frown mouth (upside-down T)
+            ctx.fillRect(cx-28,floor-272,18,38);
+            ctx.fillRect(cx-28,floor-234,56,18);
+            ctx.fillRect(cx+10,floor-272,18,38);
+            ctx.fillStyle=DARK; ctx.font='bold 20px monospace'; ctx.textAlign='center';
+            ctx.fillText('CREEPER',W/2,30);
+        }
+
+        // ── Smart image dispatcher ───────────────────────────────────────────
+
+        async function handleImageGeneration(prompt) {
+            const lp = prompt.toLowerCase();
+
+            // 1. Check for specific known characters → use guaranteed-accurate hardcoded drawing
+            const knownDraw = (() => {
+                if (lp.includes('enderman') || lp.includes('ender man'))
+                    return (ctx, W, H) => drawEnderman(ctx, W, H);
+                if (lp.includes('zombie') && lp.includes('minecraft'))
+                    return (ctx, W, H) => drawZombie(ctx, W, H);
+                if (lp.includes('skeleton') && lp.includes('minecraft'))
+                    return (ctx, W, H) => drawSkeleton(ctx, W, H);
+                if ((lp.includes('steve') || lp.includes('minecraft steve')) && !lp.includes('creeper'))
+                    return (ctx, W, H) => drawSteve(ctx, W, H);
+                if (lp.includes('creeper') || (lp.includes('minecraft') && !lp.includes('enderman') && !lp.includes('zombie') && !lp.includes('skeleton') && !lp.includes('steve') && !lp.includes('diamond') && !lp.includes('ender dragon')))
+                    return (ctx, W, H) => drawCreeper(ctx, W, H);
+                return null;
+            })();
+
+            if (knownDraw) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 800; canvas.height = 600;
+                const ctx = canvas.getContext('2d');
+                knownDraw(ctx, 800, 600);
+                addMessage({
+                    role: 'assistant',
+                    content: `🎨 AI Image Generated Successfully!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
+                    timestamp: new Date(),
+                    isImage: true,
+                    imageUrl: canvas.toDataURL('image/png')
+                });
+                return;
+            }
+
+            // 2. For everything else — ask the AI to generate canvas code
+            try {
+                const response = await fetch("https://api.anthropic.com/v1/messages", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "claude-sonnet-4-20250514",
+                        max_tokens: 1000,
+                        system: `You write HTML5 Canvas JavaScript that draws exactly what is described.
+Canvas vars already exist: 'canvas' (800×600) and 'ctx' (2D context).
+Rules: fill background first, center the subject large (300-400px), use accurate colors and shapes, output ONLY raw JS — no markdown or backticks.`,
+                        messages: [{ role: "user", content: `Draw this: ${prompt}` }]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+
+                let code = data.content[0].text.replace(/```javascript|```js|```/g, '').trim();
+                const canvas = document.createElement('canvas');
+                canvas.width = 800; canvas.height = 600;
+                const ctx = canvas.getContext('2d');
+                new Function('canvas', 'ctx', code)(canvas, ctx);
+
+                addMessage({
+                    role: 'assistant',
+                    content: `🎨 AI Image Generated Successfully!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
+                    timestamp: new Date(),
+                    isImage: true,
+                    imageUrl: canvas.toDataURL('image/png')
+                });
+
+            } catch (error) {
+                // 3. Last-resort fallback to legacy generator
+                const imageDataUrl = generateAIImage(prompt);
+                addMessage({
+                    role: 'assistant',
+                    content: `🎨 AI Image Generated Successfully!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
+                    timestamp: new Date(),
+                    isImage: true,
+                    imageUrl: imageDataUrl
+                });
+            }
+        }
+
+        function generateAIImage(prompt) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 800;
+            canvas.height = 600;
+            const ctx = canvas.getContext('2d');
+            
+            const lowerPrompt = prompt.toLowerCase();
+            
+            // Clear with base color
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Detect what type of image to generate - ANIMALS & OBJECTS FIRST
+            
+            // FNAF and Gaming
+            if (lowerPrompt.includes('fnaf') || lowerPrompt.includes('five nights') || lowerPrompt.includes('freddy fazbear') || lowerPrompt.includes('animatronic')) {
+                generateAnimatronicBear(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('minecraft') || lowerPrompt.includes('creeper')) {
+                generateMinecraftCreeper(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('mario') || lowerPrompt.includes('super mario')) {
+                generateMarioStyle(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('sonic') || lowerPrompt.includes('hedgehog')) {
+                generateSonicStyle(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('pokemon') || lowerPrompt.includes('pikachu')) {
+                generatePikachuStyle(ctx, canvas, prompt);
+            
+            // Regular animals
+            } else if (lowerPrompt.includes('duck')) {
+                generateDuck(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('dog') || lowerPrompt.includes('puppy')) {
+                generateDog(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('cat') || lowerPrompt.includes('kitty') || lowerPrompt.includes('kitten')) {
+                generateCat(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('bird')) {
+                generateBird(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('fish')) {
+                generateFish(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('butterfly') || lowerPrompt.includes('butterflies')) {
+                generateButterfly(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('car') || lowerPrompt.includes('automobile') || lowerPrompt.includes('vehicle')) {
+                generateCar(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('house') || lowerPrompt.includes('home')) {
+                generateHouse(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('flower') || lowerPrompt.includes('rose') || lowerPrompt.includes('tulip')) {
+                generateFlower(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('tree') && !lowerPrompt.includes('forest')) {
+                generateTree(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('sun') && !lowerPrompt.includes('sunset') && !lowerPrompt.includes('sunrise')) {
+                generateSun(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('moon')) {
+                generateMoon(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('heart')) {
+                generateHeart(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('star') && !lowerPrompt.includes('stars') && !lowerPrompt.includes('space')) {
+                generateStar(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('smiley') || lowerPrompt.includes('smile') || lowerPrompt.includes('emoji')) {
+                generateSmiley(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('robot')) {
+                generateRobot(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('rocket') || lowerPrompt.includes('spaceship')) {
+                generateRocket(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('balloon')) {
+                generateBalloon(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('cloud')) {
+                generateCloudScene(ctx, canvas, prompt);
+            
+            // SCENES
+            } else if (lowerPrompt.includes('space') || lowerPrompt.includes('galaxy') || lowerPrompt.includes('cosmos') || lowerPrompt.includes('universe') || lowerPrompt.includes('stars')) {
+                generateSpaceScene(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('sunset') || lowerPrompt.includes('sunrise') || lowerPrompt.includes('sky')) {
+                generateSunsetScene(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('ocean') || lowerPrompt.includes('sea') || lowerPrompt.includes('water') || lowerPrompt.includes('waves')) {
+                generateOceanScene(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('mountain') || lowerPrompt.includes('landscape')) {
+                generateMountainScene(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('forest') || lowerPrompt.includes('trees') || lowerPrompt.includes('nature')) {
+                generateForestScene(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('city') || lowerPrompt.includes('building') || lowerPrompt.includes('urban')) {
+                generateCityScene(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('abstract') || lowerPrompt.includes('pattern') || lowerPrompt.includes('geometric')) {
+                generateAbstractArt(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('fire') || lowerPrompt.includes('flame')) {
+                generateFireScene(ctx, canvas, prompt);
+            } else if (lowerPrompt.includes('rainbow') || lowerPrompt.includes('colorful')) {
+                generateRainbowScene(ctx, canvas, prompt);
+            } else {
+                // Default: colorful abstract art
+                generateAbstractArt(ctx, canvas, prompt);
+            }
+            
+            return canvas.toDataURL('image/png');
+        }
+
+        // GAMING CHARACTER DRAWING FUNCTIONS
+        
+        function generateAnimatronicBear(ctx, canvas, prompt) {
+            // Dark stage background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#1a1a2e');
+            gradient.addColorStop(1, '#0f0f1e');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Stage floor
+            ctx.fillStyle = '#2d2d44';
+            ctx.fillRect(0, canvas.height * 0.7, canvas.width, canvas.height * 0.3);
+            
+            // Spotlight effect
+            const spotlight = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, 300);
+            spotlight.addColorStop(0, 'rgba(255, 255, 200, 0.15)');
+            spotlight.addColorStop(1, 'rgba(255, 255, 200, 0)');
+            ctx.fillStyle = spotlight;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Bear body (worn brown animatronic)
+            ctx.fillStyle = '#6B4423';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2, canvas.height/2 + 80, 140, 120, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Wear and tear on body
+            ctx.fillStyle = '#4A2F1A';
+            for (let i = 0; i < 10; i++) {
+                ctx.fillRect(canvas.width/2 - 100 + Math.random() * 200, canvas.height/2 + 20 + Math.random() * 120, 10 + Math.random() * 15, 3);
+            }
+            
+            // Bear head
+            ctx.fillStyle = '#6B4423';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2 - 30, 100, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Mechanical joints visible
+            ctx.strokeStyle = '#2a2a2a';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2 - 30, 100, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Bear ears (round)
+            ctx.fillStyle = '#6B4423';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 80, canvas.height/2 - 100, 35, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#2a2a2a';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            ctx.fillStyle = '#6B4423';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 80, canvas.height/2 - 100, 35, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Inner ears
+            ctx.fillStyle = '#4A2F1A';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 80, canvas.height/2 - 100, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 80, canvas.height/2 - 100, 20, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Snout
+            ctx.fillStyle = '#8B6340';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2, canvas.height/2 + 10, 55, 40, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#2a2a2a';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Black nose
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2 + 5, 18, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Eyes (creepy glowing)
+            ctx.fillStyle = '#1a1a1a';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 35, canvas.height/2 - 35, 22, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 35, canvas.height/2 - 35, 22, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Glowing pupils (creepy!)
+            ctx.fillStyle = '#00ff88';
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#00ff88';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 35, canvas.height/2 - 35, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 35, canvas.height/2 - 35, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // Teeth (showing mechanical endoskeleton)
+            ctx.fillStyle = '#fff';
+            for (let i = 0; i < 6; i++) {
+                ctx.fillRect(canvas.width/2 - 30 + i * 10, canvas.height/2 + 35, 8, 15);
+            }
+            
+            // Arms (mechanical looking)
+            ctx.fillStyle = '#6B4423';
+            ctx.fillRect(canvas.width/2 - 170, canvas.height/2 + 40, 40, 100);
+            ctx.fillRect(canvas.width/2 + 130, canvas.height/2 + 40, 40, 100);
+            
+            // Exposed wires
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 150, canvas.height/2 + 50);
+            ctx.lineTo(canvas.width/2 - 155, canvas.height/2 + 70);
+            ctx.stroke();
+            
+            // Bow tie
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 25, canvas.height/2 + 60);
+            ctx.lineTo(canvas.width/2 - 45, canvas.height/2 + 50);
+            ctx.lineTo(canvas.width/2 - 45, canvas.height/2 + 70);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 25, canvas.height/2 + 60);
+            ctx.lineTo(canvas.width/2 + 45, canvas.height/2 + 50);
+            ctx.lineTo(canvas.width/2 + 45, canvas.height/2 + 70);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillRect(canvas.width/2 - 8, canvas.height/2 + 52, 16, 16);
+            
+            // Top hat
+            ctx.fillStyle = '#000';
+            ctx.fillRect(canvas.width/2 - 50, canvas.height/2 - 145, 100, 15);
+            ctx.fillRect(canvas.width/2 - 35, canvas.height/2 - 175, 70, 30);
+        }
+        
+        function generateMinecraftCreeper(ctx, canvas, prompt) {
+            // Minecraft sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#90C0FF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Grass blocks
+            ctx.fillStyle = '#7BC043';
+            for (let i = 0; i < 10; i++) {
+                ctx.fillRect(i * 80, canvas.height - 80, 80, 80);
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(i * 80, canvas.height - 80, 80, 80);
+            }
+            
+            // Creeper body (iconic green)
+            ctx.fillStyle = '#0DA70D';
+            // Head
+            ctx.fillRect(canvas.width/2 - 80, canvas.height/2 - 120, 160, 160);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(canvas.width/2 - 80, canvas.height/2 - 120, 160, 160);
+            
+            // Body
+            ctx.fillStyle = '#0DA70D';
+            ctx.fillRect(canvas.width/2 - 60, canvas.height/2 + 40, 120, 120);
+            ctx.strokeStyle = '#000';
+            ctx.strokeRect(canvas.width/2 - 60, canvas.height/2 + 40, 120, 120);
+            
+            // Legs
+            ctx.fillStyle = '#0DA70D';
+            ctx.fillRect(canvas.width/2 - 55, canvas.height/2 + 160, 40, 80);
+            ctx.strokeRect(canvas.width/2 - 55, canvas.height/2 + 160, 40, 80);
+            ctx.fillRect(canvas.width/2 + 15, canvas.height/2 + 160, 40, 80);
+            ctx.strokeRect(canvas.width/2 + 15, canvas.height/2 + 160, 40, 80);
+            
+            // Creeper face (pixelated style)
+            ctx.fillStyle = '#000';
+            // Eyes
+            ctx.fillRect(canvas.width/2 - 55, canvas.height/2 - 85, 30, 40);
+            ctx.fillRect(canvas.width/2 + 25, canvas.height/2 - 85, 30, 40);
+            // Mouth
+            ctx.fillRect(canvas.width/2 - 40, canvas.height/2 - 30, 20, 40);
+            ctx.fillRect(canvas.width/2 - 40, canvas.height/2 + 10, 80, 20);
+            ctx.fillRect(canvas.width/2 + 20, canvas.height/2 - 30, 20, 40);
+            
+            // Add pixelated shading
+            ctx.fillStyle = '#0C960C';
+            ctx.fillRect(canvas.width/2 + 40, canvas.height/2 - 120, 40, 160);
+            ctx.fillRect(canvas.width/2 + 20, canvas.height/2 + 40, 40, 120);
+        }
+        
+        function generateMarioStyle(ctx, canvas, prompt) {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#5C94FC');
+            gradient.addColorStop(1, '#6CB5FF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Clouds (pixel style)
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(150, 100, 120, 40);
+            ctx.fillRect(170, 80, 80, 20);
+            ctx.fillRect(550, 150, 100, 35);
+            
+            // Ground (brick style)
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(0, canvas.height * 0.75, canvas.width, canvas.height * 0.25);
+            
+            // Green pipe
+            ctx.fillStyle = '#00AA00';
+            ctx.fillRect(100, canvas.height * 0.55, 80, canvas.height * 0.2);
+            ctx.fillStyle = '#009900';
+            ctx.fillRect(100, canvas.height * 0.75, 80, 20);
+            ctx.fillRect(80, canvas.height * 0.55, 120, 30);
+            ctx.fillStyle = '#000';
+            ctx.fillRect(115, canvas.height * 0.6, 50, canvas.height * 0.15);
+            
+            // Mario character (pixelated style)
+            const mX = canvas.width/2;
+            const mY = canvas.height/2;
+            
+            // Red hat
+            ctx.fillStyle = '#E60012';
+            ctx.fillRect(mX - 40, mY - 60, 80, 30);
+            ctx.fillRect(mX - 50, mY - 50, 100, 10);
+            
+            // Face/skin
+            ctx.fillStyle = '#FFCCAA';
+            ctx.fillRect(mX - 40, mY - 40, 80, 50);
+            
+            // Eyes
+            ctx.fillStyle = '#000';
+            ctx.fillRect(mX - 25, mY - 30, 15, 15);
+            ctx.fillRect(mX + 10, mY - 30, 15, 15);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(mX - 20, mY - 28, 6, 6);
+            ctx.fillRect(mX + 15, mY - 28, 6, 6);
+            
+            // Mustache
+            ctx.fillStyle = '#4B3621';
+            ctx.fillRect(mX - 35, mY - 10, 30, 15);
+            ctx.fillRect(mX + 5, mY - 10, 30, 15);
+            
+            // Nose
+            ctx.fillStyle = '#FFCCAA';
+            ctx.fillRect(mX - 10, mY - 15, 20, 15);
+            
+            // Red shirt
+            ctx.fillStyle = '#E60012';
+            ctx.fillRect(mX - 50, mY + 10, 100, 60);
+            
+            // Blue overalls
+            ctx.fillStyle = '#0000FF';
+            ctx.fillRect(mX - 40, mY + 20, 80, 50);
+            
+            // Yellow buttons
+            ctx.fillStyle = '#FFD700';
+            ctx.fillRect(mX - 30, mY + 25, 12, 12);
+            ctx.fillRect(mX + 18, mY + 25, 12, 12);
+            
+            // White gloves/hands
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(mX - 65, mY + 25, 20, 25);
+            ctx.fillRect(mX + 45, mY + 25, 20, 25);
+            
+            // Brown shoes
+            ctx.fillStyle = '#4B3621';
+            ctx.fillRect(mX - 45, mY + 70, 35, 20);
+            ctx.fillRect(mX + 10, mY + 70, 35, 20);
+            
+            // Question block
+            ctx.fillStyle = '#F4A460';
+            ctx.fillRect(canvas.width - 200, 200, 60, 60);
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(canvas.width - 200, 200, 60, 60);
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 40px Arial';
+            ctx.fillText('?', canvas.width - 185, 245);
+        }
+        
+        function generateSonicStyle(ctx, canvas, prompt) {
+            // Sky with hills
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#00BFFF');
+            gradient.addColorStop(1, '#87CEEB');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Green hill
+            ctx.fillStyle = '#228B22';
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height * 0.7);
+            ctx.quadraticCurveTo(canvas.width/4, canvas.height * 0.6, canvas.width/2, canvas.height * 0.65);
+            ctx.quadraticCurveTo(canvas.width * 0.75, canvas.height * 0.7, canvas.width, canvas.height * 0.75);
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.lineTo(0, canvas.height);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Sonic body (blue)
+            const sX = canvas.width/2;
+            const sY = canvas.height/2;
+            
+            // Body
+            ctx.fillStyle = '#0066FF';
+            ctx.beginPath();
+            ctx.ellipse(sX, sY + 20, 70, 85, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Head
+            ctx.beginPath();
+            ctx.arc(sX, sY - 50, 80, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Spiky quills (Sonic's iconic spikes)
+            ctx.fillStyle = '#0066FF';
+            for (let i = 0; i < 5; i++) {
+                ctx.beginPath();
+                const angle = Math.PI - (i * Math.PI / 6) - Math.PI/3;
+                const x = sX + Math.cos(angle) * 80;
+                const y = sY - 50 + Math.sin(angle) * 80;
+                const spikeX = sX + Math.cos(angle) * 150;
+                const spikeY = sY - 50 + Math.sin(angle) * 150;
+                ctx.moveTo(x, y);
+                ctx.lineTo(spikeX, spikeY);
+                ctx.lineTo(x + Math.cos(angle + 0.3) * 40, y + Math.sin(angle + 0.3) * 40);
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            // Face (beige/tan)
+            ctx.fillStyle = '#FFDEAD';
+            ctx.beginPath();
+            ctx.ellipse(sX, sY - 35, 55, 60, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Eyes (large and connected)
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.ellipse(sX - 15, sY - 60, 25, 30, -0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(sX + 15, sY - 60, 25, 30, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Pupils (green)
+            ctx.fillStyle = '#00AA00';
+            ctx.beginPath();
+            ctx.ellipse(sX - 15, sY - 55, 12, 18, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(sX + 15, sY - 55, 12, 18, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Black pupils
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(sX - 15, sY - 52, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(sX + 15, sY - 52, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Nose
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.ellipse(sX, sY - 35, 8, 12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Smile
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(sX, sY - 25, 25, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+            
+            // Red shoes
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.ellipse(sX - 40, sY + 95, 35, 25, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(sX + 40, sY + 95, 35, 25, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // White shoe stripe
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(sX - 55, sY + 90, 30, 8);
+            ctx.fillRect(sX + 25, sY + 90, 30, 8);
+            
+            // Gold ring (Sonic's ring)
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(canvas.width - 150, 150, 30, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = '#FFD700';
+            ctx.font = 'bold 20px Arial';
+            ctx.fillText('★', canvas.width - 162, 158);
+        }
+        
+        function generatePikachuStyle(ctx, canvas, prompt) {
+            // Background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#E0F6FF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Grass
+            ctx.fillStyle = '#90EE90';
+            ctx.fillRect(0, canvas.height * 0.75, canvas.width, canvas.height * 0.25);
+            
+            // Pokeball in background
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.arc(150, 150, 40, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(150, 150, 40, 0, Math.PI);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(150, 150, 40, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(110, 150);
+            ctx.lineTo(190, 150);
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(150, 150, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+            
+            // Pikachu body (yellow)
+            const pX = canvas.width/2;
+            const pY = canvas.height/2;
+            
+            // Body
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.ellipse(pX, pY + 30, 90, 80, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Head
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(pX, pY - 40, 75, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Ears (long pointed)
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.moveTo(pX - 50, pY - 100);
+            ctx.lineTo(pX - 80, pY - 180);
+            ctx.lineTo(pX - 30, pY - 120);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(pX + 50, pY - 100);
+            ctx.lineTo(pX + 80, pY - 180);
+            ctx.lineTo(pX + 30, pY - 120);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Black ear tips
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.moveTo(pX - 65, pY - 165);
+            ctx.lineTo(pX - 80, pY - 180);
+            ctx.lineTo(pX - 55, pY - 175);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(pX + 65, pY - 165);
+            ctx.lineTo(pX + 80, pY - 180);
+            ctx.lineTo(pX + 55, pY - 175);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Face
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(pX - 25, pY - 50, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(pX + 25, pY - 50, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Red cheeks
+            ctx.fillStyle = '#FF6B6B';
+            ctx.beginPath();
+            ctx.arc(pX - 45, pY - 35, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(pX + 45, pY - 35, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Mouth
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(pX, pY - 25, 20, 0.2, Math.PI - 0.2);
+            ctx.stroke();
+            
+            // Nose
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.moveTo(pX, pY - 35);
+            ctx.lineTo(pX - 5, pY - 25);
+            ctx.lineTo(pX + 5, pY - 25);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Arms
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.ellipse(pX - 90, pY + 20, 25, 40, -0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(pX + 90, pY + 20, 25, 40, 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Legs
+            ctx.beginPath();
+            ctx.ellipse(pX - 40, pY + 100, 30, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(pX + 40, pY + 100, 30, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Tail (lightning bolt shape)
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.moveTo(pX + 70, pY + 10);
+            ctx.lineTo(pX + 120, pY - 30);
+            ctx.lineTo(pX + 100, pY - 30);
+            ctx.lineTo(pX + 140, pY - 70);
+            ctx.lineTo(pX + 110, pY - 40);
+            ctx.lineTo(pX + 90, pY - 10);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            // Brown tail stripes
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(pX + 95, pY - 55, 20, 8);
+            ctx.fillRect(pX + 105, pY - 25, 15, 8);
+        }
+        
+        // OBJECT DRAWING FUNCTIONS
+        
+        function generateDuck(ctx, canvas, prompt) {
+            // Sky background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#E0F6FF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Water
+            ctx.fillStyle = '#4A90E2';
+            ctx.fillRect(0, canvas.height * 0.6, canvas.width, canvas.height * 0.4);
+            
+            // Duck body (centered and larger)
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2, canvas.height/2, 150, 120, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Duck head
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 120, canvas.height/2 - 80, 80, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Duck beak
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 180, canvas.height/2 - 80);
+            ctx.lineTo(canvas.width/2 + 250, canvas.height/2 - 90);
+            ctx.lineTo(canvas.width/2 + 250, canvas.height/2 - 70);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Duck eye
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 140, canvas.height/2 - 95, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Duck wing
+            ctx.fillStyle = '#F4C430';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 - 30, canvas.height/2, 60, 40, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Reflection in water
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2, canvas.height * 0.7, 140, 50, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+        
+        function generateDog(ctx, canvas, prompt) {
+            // Background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#90EE90');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dog body
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2, canvas.height/2 + 50, 140, 100, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Dog head
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2 - 60, 90, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Dog ears (floppy)
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 - 70, canvas.height/2 - 80, 30, 60, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 + 70, canvas.height/2 - 80, 30, 60, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Dog snout
+            ctx.fillStyle = '#A0522D';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2, canvas.height/2 - 20, 50, 35, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Dog nose
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2 - 15, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Dog eyes
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 30, canvas.height/2 - 70, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 30, canvas.height/2 - 70, 12, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Dog legs
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(canvas.width/2 - 90, canvas.height/2 + 90, 35, 80);
+            ctx.fillRect(canvas.width/2 - 30, canvas.height/2 + 90, 35, 80);
+            ctx.fillRect(canvas.width/2 + 20, canvas.height/2 + 90, 35, 80);
+            ctx.fillRect(canvas.width/2 + 80, canvas.height/2 + 90, 35, 80);
+            
+            // Dog tail
+            ctx.strokeStyle = '#8B4513';
+            ctx.lineWidth = 20;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 140, canvas.height/2 + 40);
+            ctx.quadraticCurveTo(canvas.width/2 + 200, canvas.height/2 - 20, canvas.width/2 + 220, canvas.height/2 - 80);
+            ctx.stroke();
+        }
+        
+        function generateCat(ctx, canvas, prompt) {
+            // Background
+            ctx.fillStyle = '#FFF5E6';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Floor
+            ctx.fillStyle = '#D2691E';
+            ctx.fillRect(0, canvas.height * 0.7, canvas.width, canvas.height * 0.3);
+            
+            // Cat body
+            ctx.fillStyle = '#FF8C00';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2, canvas.height/2 + 30, 120, 100, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cat head
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2 - 70, 80, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cat ears (pointed)
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 60, canvas.height/2 - 110);
+            ctx.lineTo(canvas.width/2 - 80, canvas.height/2 - 150);
+            ctx.lineTo(canvas.width/2 - 40, canvas.height/2 - 130);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 60, canvas.height/2 - 110);
+            ctx.lineTo(canvas.width/2 + 80, canvas.height/2 - 150);
+            ctx.lineTo(canvas.width/2 + 40, canvas.height/2 - 130);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Cat eyes
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 - 25, canvas.height/2 - 75, 15, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 + 25, canvas.height/2 - 75, 15, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cat pupils
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 - 25, canvas.height/2 - 75, 5, 15, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 + 25, canvas.height/2 - 75, 5, 15, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Cat nose
+            ctx.fillStyle = '#FFB6C1';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2, canvas.height/2 - 50);
+            ctx.lineTo(canvas.width/2 - 8, canvas.height/2 - 60);
+            ctx.lineTo(canvas.width/2 + 8, canvas.height/2 - 60);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Cat whiskers
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            // Left whiskers
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 80, canvas.height/2 - 60);
+            ctx.lineTo(canvas.width/2 - 140, canvas.height/2 - 70);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 80, canvas.height/2 - 50);
+            ctx.lineTo(canvas.width/2 - 140, canvas.height/2 - 50);
+            ctx.stroke();
+            // Right whiskers
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 80, canvas.height/2 - 60);
+            ctx.lineTo(canvas.width/2 + 140, canvas.height/2 - 70);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 80, canvas.height/2 - 50);
+            ctx.lineTo(canvas.width/2 + 140, canvas.height/2 - 50);
+            ctx.stroke();
+            
+            // Cat tail
+            ctx.strokeStyle = '#FF8C00';
+            ctx.lineWidth = 25;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 120, canvas.height/2 + 30);
+            ctx.quadraticCurveTo(canvas.width/2 + 180, canvas.height/2 - 50, canvas.width/2 + 160, canvas.height/2 - 120);
+            ctx.stroke();
+        }
+        
+        function generateBird(ctx, canvas, prompt) {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#B0E0E6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Clouds
+            drawCloud(ctx, 150, 100, 60);
+            drawCloud(ctx, 600, 150, 50);
+            
+            // Bird body
+            ctx.fillStyle = '#FF6347';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2, canvas.height/2, 80, 60, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Bird head
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 60, canvas.height/2 - 20, 45, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Bird beak
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 100, canvas.height/2 - 20);
+            ctx.lineTo(canvas.width/2 + 140, canvas.height/2 - 10);
+            ctx.lineTo(canvas.width/2 + 100, canvas.height/2 - 5);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Bird eye
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 80, canvas.height/2 - 25, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Bird wings
+            ctx.fillStyle = '#FF4500';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 - 40, canvas.height/2 - 20, 70, 30, -0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 - 40, canvas.height/2 + 20, 70, 30, 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Bird tail
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 80, canvas.height/2);
+            ctx.lineTo(canvas.width/2 - 140, canvas.height/2 - 30);
+            ctx.lineTo(canvas.width/2 - 140, canvas.height/2 + 30);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        function generateFish(ctx, canvas, prompt) {
+            // Underwater background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#003366');
+            gradient.addColorStop(1, '#006994');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Bubbles
+            for (let i = 0; i < 20; i++) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = Math.random() * 20 + 5;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Fish body
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2, canvas.height/2, 150, 80, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Fish tail
+            ctx.fillStyle = '#FF8C00';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 150, canvas.height/2);
+            ctx.lineTo(canvas.width/2 - 230, canvas.height/2 - 60);
+            ctx.lineTo(canvas.width/2 - 230, canvas.height/2 + 60);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Fish fins
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 - 30, canvas.height/2 - 60, 40, 25, -0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 - 30, canvas.height/2 + 60, 40, 25, 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Fish eye
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 80, canvas.height/2 - 20, 25, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 85, canvas.height/2 - 20, 12, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Fish scales
+            ctx.strokeStyle = '#FF7F00';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 5; i++) {
+                for (let j = 0; j < 3; j++) {
+                    ctx.beginPath();
+                    ctx.arc(canvas.width/2 - 80 + i * 30, canvas.height/2 - 30 + j * 30, 15, 0, Math.PI);
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        function generateButterfly(ctx, canvas, prompt) {
+            // Sky background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#E0F6FF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Flowers in background
+            for (let i = 0; i < 5; i++) {
+                ctx.fillStyle = ['#FF69B4', '#FF1493', '#FFB6C1'][i % 3];
+                const x = 100 + i * 150;
+                const y = canvas.height - 100;
+                for (let p = 0; p < 5; p++) {
+                    ctx.beginPath();
+                    ctx.arc(x + Math.cos(p * Math.PI * 2 / 5) * 20, y + Math.sin(p * Math.PI * 2 / 5) * 20, 15, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(x, y, 10, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Butterfly body
+            ctx.fillStyle = '#000';
+            ctx.fillRect(canvas.width/2 - 10, canvas.height/2 - 60, 20, 120);
+            
+            // Butterfly head
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2 - 70, 20, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Antennae
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 5, canvas.height/2 - 80);
+            ctx.lineTo(canvas.width/2 - 25, canvas.height/2 - 110);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 5, canvas.height/2 - 80);
+            ctx.lineTo(canvas.width/2 + 25, canvas.height/2 - 110);
+            ctx.stroke();
+            
+            // Left wings
+            ctx.fillStyle = '#FF69B4';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            // Top left wing
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 - 80, canvas.height/2 - 30, 70, 50, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            // Bottom left wing
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 - 70, canvas.height/2 + 30, 60, 45, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Right wings
+            ctx.fillStyle = '#FF69B4';
+            // Top right wing
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 + 80, canvas.height/2 - 30, 70, 50, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            // Bottom right wing
+            ctx.fillStyle = '#FFA500';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 + 70, canvas.height/2 + 30, 60, 45, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            
+            // Wing patterns
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 80, canvas.height/2 - 30, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 80, canvas.height/2 - 30, 15, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function generateCar(ctx, canvas, prompt) {
+            // Road background
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height * 0.6);
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(0, canvas.height * 0.6, canvas.width, canvas.height * 0.4);
+            
+            // Road lines
+            ctx.fillStyle = '#FFF';
+            for (let i = 0; i < canvas.width; i += 80) {
+                ctx.fillRect(i, canvas.height * 0.75, 40, 10);
+            }
+            
+            // Car body
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(canvas.width/2 - 120, canvas.height/2 + 20, 240, 80);
+            ctx.fillRect(canvas.width/2 - 80, canvas.height/2 - 30, 160, 50);
+            
+            // Car windows
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(canvas.width/2 - 70, canvas.height/2 - 20, 60, 35);
+            ctx.fillRect(canvas.width/2 + 10, canvas.height/2 - 20, 60, 35);
+            
+            // Car wheels
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 70, canvas.height/2 + 100, 30, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 70, canvas.height/2 + 100, 30, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Wheel rims
+            ctx.fillStyle = '#C0C0C0';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 70, canvas.height/2 + 100, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 70, canvas.height/2 + 100, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Headlights
+            ctx.fillStyle = '#FFFF00';
+            ctx.fillRect(canvas.width/2 + 115, canvas.height/2 + 40, 15, 15);
+            ctx.fillRect(canvas.width/2 + 115, canvas.height/2 + 65, 15, 15);
+        }
+        
+        function generateHouse(ctx, canvas, prompt) {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#B0E0E6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Sun
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(650, 100, 50, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Grass
+            ctx.fillStyle = '#90EE90';
+            ctx.fillRect(0, canvas.height * 0.65, canvas.width, canvas.height * 0.35);
+            
+            // House body
+            ctx.fillStyle = '#F5DEB3';
+            ctx.fillRect(canvas.width/2 - 150, canvas.height/2, 300, 200);
+            
+            // Roof
+            ctx.fillStyle = '#8B4513';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 180, canvas.height/2);
+            ctx.lineTo(canvas.width/2, canvas.height/2 - 100);
+            ctx.lineTo(canvas.width/2 + 180, canvas.height/2);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Chimney
+            ctx.fillStyle = '#A0522D';
+            ctx.fillRect(canvas.width/2 + 80, canvas.height/2 - 80, 40, 80);
+            
+            // Door
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(canvas.width/2 - 40, canvas.height/2 + 80, 80, 120);
+            
+            // Door knob
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 20, canvas.height/2 + 140, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Windows
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(canvas.width/2 - 120, canvas.height/2 + 50, 60, 60);
+            ctx.fillRect(canvas.width/2 + 60, canvas.height/2 + 50, 60, 60);
+            
+            // Window frames
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(canvas.width/2 - 120, canvas.height/2 + 50, 60, 60);
+            ctx.strokeRect(canvas.width/2 + 60, canvas.height/2 + 50, 60, 60);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 90, canvas.height/2 + 50);
+            ctx.lineTo(canvas.width/2 - 90, canvas.height/2 + 110);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 120, canvas.height/2 + 80);
+            ctx.lineTo(canvas.width/2 - 60, canvas.height/2 + 80);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 90, canvas.height/2 + 50);
+            ctx.lineTo(canvas.width/2 + 90, canvas.height/2 + 110);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 60, canvas.height/2 + 80);
+            ctx.lineTo(canvas.width/2 + 120, canvas.height/2 + 80);
+            ctx.stroke();
+        }
+        
+        function generateFlower(ctx, canvas, prompt) {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#E0F6FF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Ground
+            ctx.fillStyle = '#8FBC8F';
+            ctx.fillRect(0, canvas.height * 0.7, canvas.width, canvas.height * 0.3);
+            
+            // Flower stem
+            ctx.strokeStyle = '#228B22';
+            ctx.lineWidth = 15;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2, canvas.height * 0.7);
+            ctx.lineTo(canvas.width/2, canvas.height/2 + 50);
+            ctx.stroke();
+            
+            // Leaves
+            ctx.fillStyle = '#228B22';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 - 40, canvas.height/2 + 100, 35, 20, -0.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 + 40, canvas.height/2 + 150, 35, 20, 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Flower petals
+            const petalColors = ['#FF69B4', '#FF1493', '#FFB6C1', '#FF69B4', '#FF1493'];
+            for (let i = 0; i < 8; i++) {
+                ctx.fillStyle = petalColors[i % petalColors.length];
+                const angle = (i * Math.PI * 2) / 8;
+                const x = canvas.width/2 + Math.cos(angle) * 70;
+                const y = canvas.height/2 + Math.sin(angle) * 70;
+                ctx.beginPath();
+                ctx.ellipse(x, y, 40, 25, angle, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Flower center
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2, 40, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function generateTree(ctx, canvas, prompt) {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#B0E0E6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Ground
+            ctx.fillStyle = '#90EE90';
+            ctx.fillRect(0, canvas.height * 0.75, canvas.width, canvas.height * 0.25);
+            
+            // Tree trunk
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(canvas.width/2 - 40, canvas.height/2 + 50, 80, 200);
+            
+            // Tree foliage (multiple circles for a bushy look)
+            ctx.fillStyle = '#228B22';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2, 120, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 80, canvas.height/2 + 40, 90, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 80, canvas.height/2 + 40, 90, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#32CD32';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 40, canvas.height/2 - 60, 70, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 40, canvas.height/2 - 60, 70, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function generateSun(ctx, canvas, prompt) {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#B0E0E6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Sun rays
+            ctx.strokeStyle = '#FFA500';
+            ctx.lineWidth = 20;
+            for (let i = 0; i < 12; i++) {
+                const angle = (i * Math.PI * 2) / 12;
+                ctx.beginPath();
+                ctx.moveTo(canvas.width/2 + Math.cos(angle) * 150, canvas.height/2 + Math.sin(angle) * 150);
+                ctx.lineTo(canvas.width/2 + Math.cos(angle) * 250, canvas.height/2 + Math.sin(angle) * 250);
+                ctx.stroke();
+            }
+            
+            // Sun body
+            const sunGradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, 150);
+            sunGradient.addColorStop(0, '#FFFF00');
+            sunGradient.addColorStop(0.5, '#FFD700');
+            sunGradient.addColorStop(1, '#FFA500');
+            ctx.fillStyle = sunGradient;
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2, 150, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Sun face
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 40, canvas.height/2 - 30, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 40, canvas.height/2 - 30, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2 + 20, 50, 0, Math.PI);
+            ctx.stroke();
+        }
+        
+        function generateMoon(ctx, canvas, prompt) {
+            // Night sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#000033');
+            gradient.addColorStop(1, '#000066');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Stars
+            ctx.fillStyle = '#FFF';
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = Math.random() * 2;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Moon
+            const moonGradient = ctx.createRadialGradient(canvas.width/2 - 50, canvas.height/2 - 50, 0, canvas.width/2, canvas.height/2, 150);
+            moonGradient.addColorStop(0, '#FFF');
+            moonGradient.addColorStop(1, '#E0E0E0');
+            ctx.fillStyle = moonGradient;
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2, 150, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Moon craters
+            ctx.fillStyle = 'rgba(200, 200, 200, 0.5)';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 40, canvas.height/2 - 30, 30, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 50, canvas.height/2 + 20, 40, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 20, canvas.height/2 + 60, 25, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 30, canvas.height/2 - 70, 20, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function generateHeart(ctx, canvas, prompt) {
+            // Pink background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#FFE4E1');
+            gradient.addColorStop(1, '#FFC0CB');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Heart shape
+            ctx.fillStyle = '#FF1493';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2, canvas.height/2 + 50);
+            ctx.bezierCurveTo(canvas.width/2, canvas.height/2 + 20, canvas.width/2 - 120, canvas.height/2 - 80, canvas.width/2 - 120, canvas.height/2 - 140);
+            ctx.bezierCurveTo(canvas.width/2 - 120, canvas.height/2 - 200, canvas.width/2, canvas.height/2 - 200, canvas.width/2, canvas.height/2 - 140);
+            ctx.bezierCurveTo(canvas.width/2, canvas.height/2 - 200, canvas.width/2 + 120, canvas.height/2 - 200, canvas.width/2 + 120, canvas.height/2 - 140);
+            ctx.bezierCurveTo(canvas.width/2 + 120, canvas.height/2 - 80, canvas.width/2, canvas.height/2 + 20, canvas.width/2, canvas.height/2 + 50);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Heart shine
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width/2 - 40, canvas.height/2 - 120, 30, 40, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        function generateStar(ctx, canvas, prompt) {
+            // Night sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#000033');
+            gradient.addColorStop(1, '#000066');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Star shape (5-pointed)
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+                const x = canvas.width/2 + Math.cos(angle) * 150;
+                const y = canvas.height/2 + Math.sin(angle) * 150;
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+            ctx.fill();
+            
+            // Star glow
+            const starGradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, 200);
+            starGradient.addColorStop(0, 'rgba(255, 215, 0, 0.5)');
+            starGradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+            ctx.fillStyle = starGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        function generateSmiley(ctx, canvas, prompt) {
+            // Yellow background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#FFF9C4');
+            gradient.addColorStop(1, '#FFF59D');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Smiley face
+            ctx.fillStyle = '#FFEB3B';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2, 150, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+            
+            // Eyes
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 50, canvas.height/2 - 40, 20, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 50, canvas.height/2 - 40, 20, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Smile
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2 + 20, 80, 0, Math.PI);
+            ctx.stroke();
+        }
+        
+        function generateRobot(ctx, canvas, prompt) {
+            // Background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#E3F2FD');
+            gradient.addColorStop(1, '#BBDEFB');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Robot body
+            ctx.fillStyle = '#90A4AE';
+            ctx.fillRect(canvas.width/2 - 100, canvas.height/2, 200, 150);
+            
+            // Robot head
+            ctx.fillStyle = '#B0BEC5';
+            ctx.fillRect(canvas.width/2 - 80, canvas.height/2 - 120, 160, 120);
+            
+            // Antenna
+            ctx.strokeStyle = '#546E7A';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2, canvas.height/2 - 120);
+            ctx.lineTo(canvas.width/2, canvas.height/2 - 170);
+            ctx.stroke();
+            ctx.fillStyle = '#FF5722';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2 - 170, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Eyes
+            ctx.fillStyle = '#00BCD4';
+            ctx.fillRect(canvas.width/2 - 50, canvas.height/2 - 80, 30, 30);
+            ctx.fillRect(canvas.width/2 + 20, canvas.height/2 - 80, 30, 30);
+            
+            // Mouth
+            ctx.fillStyle = '#000';
+            ctx.fillRect(canvas.width/2 - 40, canvas.height/2 - 30, 80, 10);
+            
+            // Arms
+            ctx.fillStyle = '#78909C';
+            ctx.fillRect(canvas.width/2 - 150, canvas.height/2 + 20, 50, 100);
+            ctx.fillRect(canvas.width/2 + 100, canvas.height/2 + 20, 50, 100);
+            
+            // Hands
+            ctx.fillStyle = '#607D8B';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 - 125, canvas.height/2 + 120, 25, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(canvas.width/2 + 125, canvas.height/2 + 120, 25, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Legs
+            ctx.fillStyle = '#78909C';
+            ctx.fillRect(canvas.width/2 - 80, canvas.height/2 + 150, 50, 80);
+            ctx.fillRect(canvas.width/2 + 30, canvas.height/2 + 150, 50, 80);
+            
+            // Feet
+            ctx.fillStyle = '#37474F';
+            ctx.fillRect(canvas.width/2 - 90, canvas.height/2 + 230, 70, 20);
+            ctx.fillRect(canvas.width/2 + 20, canvas.height/2 + 230, 70, 20);
+        }
+        
+        function generateRocket(ctx, canvas, prompt) {
+            // Space background
+            ctx.fillStyle = '#000033';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Stars
+            ctx.fillStyle = '#FFF';
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                ctx.beginPath();
+                ctx.arc(x, y, Math.random() * 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Rocket body
+            ctx.fillStyle = '#E0E0E0';
+            ctx.fillRect(canvas.width/2 - 50, canvas.height/2 - 50, 100, 200);
+            
+            // Rocket nose cone
+            ctx.fillStyle = '#FF5722';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 50, canvas.height/2 - 50);
+            ctx.lineTo(canvas.width/2, canvas.height/2 - 150);
+            ctx.lineTo(canvas.width/2 + 50, canvas.height/2 - 50);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Window
+            ctx.fillStyle = '#4FC3F7';
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2, 30, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Rocket fins
+            ctx.fillStyle = '#D32F2F';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 50, canvas.height/2 + 150);
+            ctx.lineTo(canvas.width/2 - 100, canvas.height/2 + 200);
+            ctx.lineTo(canvas.width/2 - 50, canvas.height/2 + 200);
+            ctx.closePath();
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 50, canvas.height/2 + 150);
+            ctx.lineTo(canvas.width/2 + 100, canvas.height/2 + 200);
+            ctx.lineTo(canvas.width/2 + 50, canvas.height/2 + 200);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Rocket flames
+            ctx.fillStyle = '#FF9800';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 40, canvas.height/2 + 150);
+            ctx.lineTo(canvas.width/2 - 30, canvas.height/2 + 220);
+            ctx.lineTo(canvas.width/2 - 20, canvas.height/2 + 150);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#FFEB3B';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 10, canvas.height/2 + 150);
+            ctx.lineTo(canvas.width/2, canvas.height/2 + 250);
+            ctx.lineTo(canvas.width/2 + 10, canvas.height/2 + 150);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#FF9800';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 + 20, canvas.height/2 + 150);
+            ctx.lineTo(canvas.width/2 + 30, canvas.height/2 + 220);
+            ctx.lineTo(canvas.width/2 + 40, canvas.height/2 + 150);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        function generateBalloon(ctx, canvas, prompt) {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#B0E0E6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Clouds
+            drawCloud(ctx, 150, 100, 60);
+            drawCloud(ctx, 600, 150, 50);
+            
+            // Multiple balloons
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8'];
+            for (let i = 0; i < 5; i++) {
+                const x = 200 + i * 100;
+                const y = 200 + Math.sin(i) * 50;
+                
+                // Balloon
+                ctx.fillStyle = colors[i];
+                ctx.beginPath();
+                ctx.ellipse(x, y, 50, 70, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Balloon knot
+                ctx.fillStyle = colors[i];
+                ctx.beginPath();
+                ctx.moveTo(x, y + 70);
+                ctx.lineTo(x - 5, y + 80);
+                ctx.lineTo(x + 5, y + 80);
+                ctx.closePath();
+                ctx.fill();
+                
+                // String
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(x, y + 80);
+                ctx.lineTo(x + Math.sin(i * 2) * 20, y + 200);
+                ctx.stroke();
+                
+                // Highlight
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.beginPath();
+                ctx.ellipse(x - 15, y - 20, 15, 20, -0.3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function generateCloudScene(ctx, canvas, prompt) {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#B0E0E6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Multiple clouds
+            drawCloud(ctx, 150, 150, 80);
+            drawCloud(ctx, 400, 100, 100);
+            drawCloud(ctx, 600, 200, 70);
+            drawCloud(ctx, 250, 350, 90);
+            drawCloud(ctx, 550, 400, 85);
+        }
+        
+        // SCENE DRAWING FUNCTIONS
+        
+        function generateSpaceScene(ctx, canvas, prompt) {
+            // Deep space background gradient
+            const gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width);
+            gradient.addColorStop(0, '#1a0033');
+            gradient.addColorStop(0.5, '#0d001a');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add stars
+            for (let i = 0; i < 300; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = Math.random() * 2;
+                const brightness = Math.random();
+                ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Add colorful nebula
+            for (let i = 0; i < 5; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = 100 + Math.random() * 200;
+                const nebula = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                const colors = ['rgba(138,43,226,0.3)', 'rgba(75,0,130,0.3)', 'rgba(255,20,147,0.3)', 'rgba(0,191,255,0.3)'];
+                nebula.addColorStop(0, colors[Math.floor(Math.random() * colors.length)]);
+                nebula.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = nebula;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            // Add planets
+            for (let i = 0; i < 3; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = 30 + Math.random() * 50;
+                const planetGradient = ctx.createRadialGradient(x - radius/3, y - radius/3, 0, x, y, radius);
+                planetGradient.addColorStop(0, '#8866ff');
+                planetGradient.addColorStop(1, '#4433aa');
+                ctx.fillStyle = planetGradient;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function generateSunsetScene(ctx, canvas, prompt) {
+            // Sky gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#FF6B6B');
+            gradient.addColorStop(0.3, '#FF8E53');
+            gradient.addColorStop(0.6, '#FFC371');
+            gradient.addColorStop(1, '#FFE5B4');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Sun
+            const sunGradient = ctx.createRadialGradient(canvas.width/2, canvas.height * 0.4, 0, canvas.width/2, canvas.height * 0.4, 120);
+            sunGradient.addColorStop(0, '#FFF9E6');
+            sunGradient.addColorStop(0.5, '#FFD700');
+            sunGradient.addColorStop(1, 'rgba(255, 165, 0, 0)');
+            ctx.fillStyle = sunGradient;
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height * 0.4, 120, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Clouds
+            ctx.fillStyle = 'rgba(255, 200, 150, 0.5)';
+            for (let i = 0; i < 6; i++) {
+                const y = 50 + i * 80;
+                drawCloud(ctx, 100 + i * 150, y, 100);
+            }
+        }
+
+        function generateOceanScene(ctx, canvas, prompt) {
+            // Sky
+            const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height/2);
+            skyGradient.addColorStop(0, '#87CEEB');
+            skyGradient.addColorStop(1, '#B0E0E6');
+            ctx.fillStyle = skyGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height/2);
+            
+            // Ocean
+            const oceanGradient = ctx.createLinearGradient(0, canvas.height/2, 0, canvas.height);
+            oceanGradient.addColorStop(0, '#006994');
+            oceanGradient.addColorStop(0.5, '#004d6d');
+            oceanGradient.addColorStop(1, '#003147');
+            ctx.fillStyle = oceanGradient;
+            ctx.fillRect(0, canvas.height/2, canvas.width, canvas.height/2);
+            
+            // Waves
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 10; i++) {
+                ctx.beginPath();
+                const y = canvas.height/2 + i * 40;
+                for (let x = 0; x < canvas.width; x += 40) {
+                    const yOffset = Math.sin((x + i * 50) * 0.02) * 15;
+                    if (x === 0) {
+                        ctx.moveTo(x, y + yOffset);
+                    } else {
+                        ctx.lineTo(x, y + yOffset);
+                    }
+                }
+                ctx.stroke();
+            }
+            
+            // Sun reflection
+            const reflectionGradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, 200);
+            reflectionGradient.addColorStop(0, 'rgba(255, 255, 200, 0.4)');
+            reflectionGradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
+            ctx.fillStyle = reflectionGradient;
+            ctx.fillRect(0, canvas.height/2, canvas.width, canvas.height/2);
+        }
+
+        function generateMountainScene(ctx, canvas, prompt) {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#1e3a8a');
+            gradient.addColorStop(0.5, '#3b82f6');
+            gradient.addColorStop(1, '#93c5fd');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Mountains (back to front)
+            const mountainLayers = [
+                { color: '#4a5568', y: canvas.height * 0.4 },
+                { color: '#2d3748', y: canvas.height * 0.5 },
+                { color: '#1a202c', y: canvas.height * 0.6 }
+            ];
+            
+            mountainLayers.forEach(layer => {
+                ctx.fillStyle = layer.color;
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height);
+                for (let x = 0; x < canvas.width; x += 50) {
+                    const peak = layer.y - Math.random() * 150;
+                    ctx.lineTo(x, peak);
+                }
+                ctx.lineTo(canvas.width, canvas.height);
+                ctx.closePath();
+                ctx.fill();
+            });
+        }
+
+        function generateForestScene(ctx, canvas, prompt) {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height/3);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#B0E0E6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height/3);
+            
+            // Ground
+            ctx.fillStyle = '#2d5016';
+            ctx.fillRect(0, canvas.height * 0.7, canvas.width, canvas.height * 0.3);
+            
+            // Trees
+            for (let i = 0; i < 15; i++) {
+                const x = (i * 60) + Math.random() * 40;
+                const treeHeight = 150 + Math.random() * 100;
+                
+                // Trunk
+                ctx.fillStyle = '#4a3728';
+                ctx.fillRect(x, canvas.height * 0.7 - treeHeight, 20, treeHeight);
+                
+                // Foliage
+                ctx.fillStyle = ['#228B22', '#2d5016', '#3d6b1f'][Math.floor(Math.random() * 3)];
+                ctx.beginPath();
+                ctx.arc(x + 10, canvas.height * 0.7 - treeHeight, 40, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(x - 10, canvas.height * 0.7 - treeHeight + 20, 35, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(x + 25, canvas.height * 0.7 - treeHeight + 25, 30, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function generateCityScene(ctx, canvas, prompt) {
+            // Night sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#0a0a1a');
+            gradient.addColorStop(1, '#1a1a3a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Buildings
+            for (let i = 0; i < 12; i++) {
+                const x = i * 70 + Math.random() * 20;
+                const buildingHeight = 200 + Math.random() * 300;
+                const width = 50 + Math.random() * 30;
+                
+                // Building
+                ctx.fillStyle = ['#2d3748', '#1a202c', '#374151'][Math.floor(Math.random() * 3)];
+                ctx.fillRect(x, canvas.height - buildingHeight, width, buildingHeight);
+                
+                // Windows
+                ctx.fillStyle = Math.random() > 0.3 ? '#FFC837' : '#333';
+                for (let w = 0; w < 4; w++) {
+                    for (let h = 0; h < buildingHeight / 30; h++) {
+                        ctx.fillRect(x + 5 + w * 10, canvas.height - buildingHeight + 10 + h * 30, 6, 15);
+                    }
+                }
+            }
+        }
+
+        function generateFireScene(ctx, canvas, prompt) {
+            // Dark background
+            ctx.fillStyle = '#1a0000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Fire particles
+            for (let i = 0; i < 200; i++) {
+                const x = canvas.width/2 + (Math.random() - 0.5) * 400;
+                const y = canvas.height - Math.random() * canvas.height * 0.8;
+                const size = Math.random() * 30 + 5;
+                
+                const fireGradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+                fireGradient.addColorStop(0, '#fff');
+                fireGradient.addColorStop(0.3, '#ff0');
+                fireGradient.addColorStop(0.6, '#f80');
+                fireGradient.addColorStop(1, 'rgba(255,0,0,0)');
+                
+                ctx.fillStyle = fireGradient;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function generateRainbowScene(ctx, canvas, prompt) {
+            // Sky
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#B0E0E6');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Rainbow
+            const colors = ['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3'];
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height * 0.8;
+            const baseRadius = 300;
+            
+            colors.forEach((color, i) => {
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 40;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, baseRadius - (i * 45), Math.PI, 0);
+                ctx.stroke();
+            });
+            
+            // Clouds at rainbow ends
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            drawCloud(ctx, 100, canvas.height * 0.6, 80);
+            drawCloud(ctx, canvas.width - 150, canvas.height * 0.6, 80);
+        }
+
+        function generateAbstractArt(ctx, canvas, prompt) {
+            // Colorful background
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(0.5, '#764ba2');
+            gradient.addColorStop(1, '#f093fb');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Random shapes
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
+            
+            for (let i = 0; i < 30; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = Math.random() * 100 + 30;
+                
+                ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)] + '80';
+                
+                if (Math.random() > 0.5) {
+                    // Circle
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    // Rectangle
+                    ctx.fillRect(x, y, size, size);
+                }
+            }
+            
+            // Add some lines
+            ctx.lineWidth = 5;
+            for (let i = 0; i < 15; i++) {
+                ctx.strokeStyle = colors[Math.floor(Math.random() * colors.length)] + '60';
+                ctx.beginPath();
+                ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+                ctx.stroke();
+            }
+        }
+
+        function drawCloud(ctx, x, y, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+            ctx.arc(x + size * 0.4, y, size * 0.4, 0, Math.PI * 2);
+            ctx.arc(x - size * 0.4, y, size * 0.4, 0, Math.PI * 2);
+            ctx.arc(x, y - size * 0.3, size * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Download image function
+        function downloadImage(imageUrl, filename) {
+            const link = document.createElement('a');
+            link.href = imageUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Focus input on load
+        inputField.focus();
+    </script>
+</body>
+</html>
