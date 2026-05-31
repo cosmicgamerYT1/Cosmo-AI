@@ -740,7 +740,41 @@
             } catch (e) { return null; }
         }
 
+        async function tryMath(message) {
+            let expr = message
+                .replace(/[?!.]/g, '')
+                .replace(/\b(what\s+is|what'?s|calculate|compute|work\s+out|solve|equals?)\b/gi, '')
+                .replace(/\btake\s+away\b/g, '-')
+                .replace(/\bsubtract(ed)?\b/g, '-')
+                .replace(/\bminus\b/g, '-')
+                .replace(/\bplus\b|\badd(ed)?\b/g, '+')
+                .replace(/\btimes\b|\bmultiplied?\s+by\b/g, '*')
+                .replace(/\bdivided?\s+by\b|\bover\b/g, '/')
+                .replace(/\bsquared\b/g, '**2')
+                .replace(/\bcubed\b/g, '**3')
+                .replace(/\bto\s+the\s+power\s+of\s+(\d+)/g, '**$1')
+                .replace(/×/g, '*').replace(/÷/g, '/')
+                .trim();
+
+            // Must be purely numeric/operator after substitution
+            if (/^[-\d\s+\-*\/().%^*]+$/.test(expr) && /\d/.test(expr) && /[+\-*\/]/.test(expr)) {
+                try {
+                    const result = Function('"use strict"; return (' + expr + ')')();
+                    if (typeof result === 'number' && isFinite(result)) {
+                        const r = Math.round(result * 1e9) / 1e9;
+                        return `🔢 The answer is **${r}**`;
+                    }
+                } catch(e) {}
+            }
+            return null;
+        }
+
         async function tryWikipedia(message) {
+            // Don't search Wikipedia for math-like inputs
+            const lm = message.toLowerCase();
+            if (/\b(take away|plus|minus|times|divided by|multiply|subtract)\b/.test(lm) && /\d/.test(lm)) return null;
+            if (/^[\d\s+\-*\/.()%^x×÷]+$/.test(lm)) return null;
+
             // Strip question words to get the core subject
             const query = message
                 .replace(/^(please\s+)?(tell me|explain|describe|what is|what are|what was|who is|who was|who are|where is|when did|when was|how does|how do|why are|why is|why did|are|is|was|were|did|does|do|has|have)\s+/i, '')
@@ -782,7 +816,7 @@
             summary = summary.trim();
 
             const emoji = getTopicEmoji(title + ' ' + query);
-            return `${emoji} **${title}**\n\n${summary}\n\n📖 Wikipedia`;
+            return `${emoji} **${title}**\n\n${summary}`;
         }
 
         async function handleChatMessage(message) {
@@ -795,14 +829,21 @@
                 return;
             }
 
-            // Layer 2 — Try Anthropic API (works inside Claude.ai)
+            // Layer 2 — Math (natural language: "156 take away 45", "what is 12 times 7", etc.)
+            const mathResult = await tryMath(message);
+            if (mathResult) {
+                addMessage({ role: 'assistant', content: mathResult, timestamp: new Date() });
+                return;
+            }
+
+            // Layer 3 — Try Anthropic API (works inside Claude.ai)
             const apiReply = await tryAnthropicAPI(message);
             if (apiReply) {
                 addMessage({ role: 'assistant', content: apiReply, timestamp: new Date() });
                 return;
             }
 
-            // Layer 3 — Wikipedia knowledge base (works everywhere)
+            // Layer 4 — Wikipedia knowledge base (works everywhere)
             try {
                 const wikiReply = await tryWikipedia(message);
                 if (wikiReply) {
@@ -811,14 +852,14 @@
                 }
             } catch(e) {}
 
-            // Layer 4 — Local smart responses (math, facts, greetings, etc.)
+            // Layer 5 — Local smart responses (math, facts, greetings, etc.)
             const local = generateSmartResponse(message);
             if (!local.includes('Could you rephrase')) {
                 addMessage({ role: 'assistant', content: local, timestamp: new Date() });
                 return;
             }
 
-            // Layer 5 — Graceful "I'll try harder" response
+            // Layer 6 — Graceful "I'll try harder" response
             addMessage({
                 role: 'assistant',
                 content: `🤔 Hmm, I couldn't find a confident answer to "${message.substring(0, 60)}${message.length > 60 ? '...' : ''}".\n\nTry asking it differently, or ask me about science, history, maths, geography, people, animals, technology, and more — I love those topics! 🌟`,
