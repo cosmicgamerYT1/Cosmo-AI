@@ -1631,147 +1631,96 @@
 
         // ── Smart image dispatcher ───────────────────────────────────────────
 
-        // ── 3D scene renderer (Three.js) ────────────────────────────────────
+        // ── Prompt enhancer — turns any request into a high-quality AI prompt ──
 
-        async function render3DScene(prompt) {
-            if (!window.THREE) {
-                await new Promise((resolve, reject) => {
-                    const s = document.createElement('script');
-                    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-                    s.onload = resolve; s.onerror = reject;
-                    document.head.appendChild(s);
-                });
+        function buildImagePrompt(prompt, lp) {
+            const quality = 'masterpiece, best quality, highly detailed, sharp focus, 8k, professional digital artwork, vibrant colors, dramatic lighting';
+
+            let style = '';
+
+            if (lp.includes('minecraft')) {
+                const is3d = /3d|three.?d/i.test(prompt);
+                style = is3d
+                    ? 'minecraft 3D render, voxel art, cinematic volumetric lighting, dramatic shadows, ray tracing, epic composition, professional game art, depth of field'
+                    : 'minecraft pixel art style, voxel characters, cinematic lighting, epic dramatic atmosphere, professional Minecraft artwork, glowing effects';
+            } else if (/space|galaxy|cosmic|nebula|star|universe/.test(lp)) {
+                style = 'deep space digital art, glowing nebula, volumetric light, stars, cosmic scale, cinematic atmosphere, dark background with vibrant purples and blues';
+            } else if (/3d|three.?d|three dimensional/i.test(prompt)) {
+                style = '3D render, octane render, photorealistic, studio lighting, ray tracing, physically based rendering, subsurface scattering, dramatic shadows, depth of field';
+            } else if (/portrait|character|hero|warrior|wizard|knight/.test(lp)) {
+                style = 'character concept art, digital painting, cinematic portrait, dramatic rim lighting, epic fantasy composition, detailed face and costume';
+            } else if (/landscape|nature|forest|mountain|ocean|sunset|waterfall/.test(lp)) {
+                style = 'landscape photography, photorealistic, golden hour, dramatic sky, atmospheric perspective, detailed foreground, cinematic composition';
+            } else if (/anime|manga|chibi|kawaii/.test(lp)) {
+                style = 'anime illustration, studio quality, detailed, clean linework, vibrant colors, soft shading, professional anime art';
+            } else if (/logo|icon|badge|emblem/.test(lp)) {
+                style = 'vector art, clean professional design, sharp, bold colors, graphic design, transparent-friendly';
+            } else if (/city|building|architecture|urban/.test(lp)) {
+                style = 'architectural visualization, cinematic, dramatic lighting, neon reflections, photorealistic, detailed';
+            } else if (/dragon|fantasy|magic|mythical/.test(lp)) {
+                style = 'epic fantasy art, dramatic lighting, magical atmosphere, detailed creature design, cinematic, concept art';
+            } else {
+                style = 'digital art, concept art, cinematic composition, dramatic lighting, richly detailed, atmospheric';
             }
-            const resp = await fetch("https://api.anthropic.com/v1/messages", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    model: "claude-sonnet-4-20250514",
-                    max_tokens: 2000,
-                    system: `Write Three.js r128 JavaScript to render a beautiful 3D scene.
-THREE is passed in as a parameter called THREE.
-Rules:
-- Use VAR (not const/let) for renderer, scene, camera, light
-- var renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true}); renderer.setSize(800,600);
-- var scene = new THREE.Scene();
-- var camera = new THREE.PerspectiveCamera(60, 800/600, 0.1, 1000);
-- Add var ambientLight + var dirLight for nice shading
-- Use MeshStandardMaterial with vivid colors
-- Position camera to see the full scene clearly
-- Set renderer.setClearColor(0x...) for a nice background
-- End with: renderer.render(scene, camera);
-- Do NOT use requestAnimationFrame, do NOT append to document
-Output ONLY raw JavaScript, no markdown.`,
-                    messages: [{ role: "user", content: `3D scene of: ${prompt}` }]
-                })
-            });
-            const data = await resp.json();
-            if (data.error) throw new Error(data.error.message);
-            let code = data.content[0].text.replace(/```(?:javascript|js)?/g, '').trim();
-            code = code
-                .replace(/\bconst\s+(renderer|scene|camera|light|ambient|dir)\b/g, 'var $1')
-                .replace(/\blet\s+(renderer|scene|camera|light|ambient|dir)\b/g, 'var $1');
-            const fn = new Function('THREE', code + '\n; return typeof renderer !== "undefined" ? renderer.domElement : null;');
-            const el = fn(window.THREE);
-            if (el && el.tagName === 'CANVAS') return el.toDataURL('image/png');
-            throw new Error('No canvas returned');
+
+            return `${prompt}, ${style}, ${quality}`;
         }
 
-        // ── Main image generation handler ────────────────────────────────────
+        // ── Main image generation — powered by Pollinations.ai (FLUX model) ──
 
         async function handleImageGeneration(prompt) {
             const lp = prompt.toLowerCase();
-            const is3D = /\b3d\b|3-d|three.?d\b|3 d image|three dimensional/i.test(prompt);
 
-            // Priority 1 — Hardcoded accurate Minecraft / known characters
-            const knownDraw = (() => {
-                if (lp.includes('enderman') || lp.includes('ender man'))
-                    return (ctx, W, H) => drawEnderman(ctx, W, H);
-                if (lp.includes('zombie') && lp.includes('minecraft'))
-                    return (ctx, W, H) => drawZombie(ctx, W, H);
-                if (lp.includes('skeleton') && lp.includes('minecraft'))
-                    return (ctx, W, H) => drawSkeleton(ctx, W, H);
-                if ((lp.includes('steve') || lp.includes('minecraft steve')) && !lp.includes('creeper'))
-                    return (ctx, W, H) => drawSteve(ctx, W, H);
-                if (lp.includes('creeper') || (lp.includes('minecraft') && !lp.includes('enderman') && !lp.includes('zombie') && !lp.includes('skeleton') && !lp.includes('steve') && !lp.includes('diamond') && !lp.includes('ender dragon')))
-                    return (ctx, W, H) => drawCreeper(ctx, W, H);
-                return null;
-            })();
-
-            if (knownDraw) {
-                const canvas = document.createElement('canvas');
-                canvas.width = 800; canvas.height = 600;
-                const ctx = canvas.getContext('2d');
-                knownDraw(ctx, 800, 600);
-                addMessage({
-                    role: 'assistant',
-                    content: `🎨 AI Image Generated Successfully!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
-                    timestamp: new Date(), isImage: true, imageUrl: canvas.toDataURL('image/png')
-                });
-                return;
-            }
-
-            // Priority 2 — True 3D with Three.js (when "3D" is in the prompt)
-            if (is3D) {
-                try {
-                    const dataUrl = await render3DScene(prompt);
-                    addMessage({
-                        role: 'assistant',
-                        content: `🎨 3D Image Generated!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
-                        timestamp: new Date(), isImage: true, imageUrl: dataUrl
-                    });
-                    return;
-                } catch(e) { /* fall through to 2D */ }
-            }
-
-            // Priority 3 — High-quality AI canvas art
             try {
-                const response = await fetch("https://api.anthropic.com/v1/messages", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        model: "claude-sonnet-4-20250514",
-                        max_tokens: 2000,
-                        system: `You are a master HTML5 Canvas artist creating stunning digital illustrations.
-Canvas vars already defined: 'canvas' (800x600) and 'ctx' (2D context).
+                const enhanced = buildImagePrompt(prompt, lp);
+                const seed = Math.floor(Math.random() * 999999);
+                const w = 1024, h = 1024;
+                const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&seed=${seed}&nologo=true&model=flux`;
 
-QUALITY RULES — every image must have:
-- Rich gradient backgrounds (never flat fills for sky/ground/water)
-- Atmospheric depth: layer distant elements first (lighter/hazier), close elements last (darker/sharper)
-- Lighting: use ctx.shadowBlur + ctx.shadowColor for glows and soft shadows
-- Texture: simulate grass/fur/rock/water with many small strokes or noise patterns
-- Highlights: add bright specular spots on shiny objects
-- Details: foreground elements, small environmental touches, particles
-
-STYLE BY SUBJECT:
-- Landscapes: gradient sky (multiple stops), layered hills/mountains, detailed trees, reflective water
-- Space: deep radial gradient bg, glowing stars (varying sizes), nebula clouds (semi-transparent arcs), planet with atmosphere rim
-- Characters: rounded shapes with shading gradient (light source from top-left), dark outline, highlight dot
-- Animals: body shading, eye highlights, textured fur/scales with short strokes
-- Buildings: perspective lines, window light, cast shadows, material texture
-
-Output ONLY raw JavaScript code — zero markdown, zero backticks.`,
-                        messages: [{ role: "user", content: `Create a stunning, richly detailed canvas illustration: ${prompt}` }]
-                    })
+                // Preload — Pollinations generates the image during this fetch
+                await new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = resolve;
+                    img.onerror = () => reject(new Error('load failed'));
+                    img.src = url;
+                    setTimeout(() => reject(new Error('timeout')), 60000);
                 });
-                const data = await response.json();
-                if (data.error) throw new Error(data.error.message);
-                let code = data.content[0].text.replace(/```javascript|```js|```/g, '').trim();
-                const canvas = document.createElement('canvas');
-                canvas.width = 800; canvas.height = 600;
-                const ctx = canvas.getContext('2d');
-                new Function('canvas', 'ctx', code)(canvas, ctx);
+
                 addMessage({
                     role: 'assistant',
-                    content: `🎨 AI Image Generated Successfully!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
-                    timestamp: new Date(), isImage: true, imageUrl: canvas.toDataURL('image/png')
+                    content: `🎨 AI Image Generated!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
+                    timestamp: new Date(),
+                    isImage: true,
+                    imageUrl: url
                 });
-            } catch (error) {
-                const imageDataUrl = generateAIImage(prompt);
+
+            } catch (err) {
+                // Fallback: canvas functions for known Minecraft characters
+                const canvasFallback = (() => {
+                    if (lp.includes('enderman') || lp.includes('ender man')) return (c,ctx)=>drawEnderman(ctx,c.width,c.height);
+                    if (lp.includes('zombie') && lp.includes('minecraft'))   return (c,ctx)=>drawZombie(ctx,c.width,c.height);
+                    if (lp.includes('skeleton') && lp.includes('minecraft')) return (c,ctx)=>drawSkeleton(ctx,c.width,c.height);
+                    if (lp.includes('steve'))                                  return (c,ctx)=>drawSteve(ctx,c.width,c.height);
+                    if (lp.includes('creeper') || lp.includes('minecraft'))   return (c,ctx)=>drawCreeper(ctx,c.width,c.height);
+                    return null;
+                })();
+
+                let imageUrl;
+                if (canvasFallback) {
+                    const cv = document.createElement('canvas');
+                    cv.width = 800; cv.height = 600;
+                    canvasFallback(cv, cv.getContext('2d'));
+                    imageUrl = cv.toDataURL('image/png');
+                } else {
+                    imageUrl = generateAIImage(prompt);
+                }
+
                 addMessage({
                     role: 'assistant',
-                    content: `🎨 AI Image Generated Successfully!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
-                    timestamp: new Date(), isImage: true, imageUrl: imageDataUrl
+                    content: `🎨 AI Image Generated!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
+                    timestamp: new Date(),
+                    isImage: true,
+                    imageUrl: imageUrl
                 });
             }
         }
