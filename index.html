@@ -1666,63 +1666,58 @@
             return `${prompt}, ${style}, ${quality}`;
         }
 
-        // ── Main image generation — powered by Pollinations.ai (FLUX model) ──
+        // ── Image generation — Pollinations.ai (FLUX) + canvas fallback ──────
 
         async function handleImageGeneration(prompt) {
             const lp = prompt.toLowerCase();
 
-            try {
-                const enhanced = buildImagePrompt(prompt, lp);
-                const seed = Math.floor(Math.random() * 999999);
-                const w = 1024, h = 1024;
-                const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=${w}&height=${h}&seed=${seed}&nologo=true&model=flux`;
+            // Detect modifiers that mean "use real AI, not canvas"
+            const is3D        = /\b3d\b|3-d|three[\s-]?d\b/i.test(prompt);
+            const isCustomSkin = /galaxy|cosmic|skin|player|character|custom|youtuber|gamer|yt/i.test(lp);
 
-                // Preload — Pollinations generates the image during this fetch
-                await new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = resolve;
-                    img.onerror = () => reject(new Error('load failed'));
-                    img.src = url;
-                    setTimeout(() => reject(new Error('timeout')), 60000);
-                });
-
-                addMessage({
-                    role: 'assistant',
-                    content: `🎨 AI Image Generated!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
-                    timestamp: new Date(),
-                    isImage: true,
-                    imageUrl: url
-                });
-
-            } catch (err) {
-                // Fallback: canvas functions for known Minecraft characters
-                const canvasFallback = (() => {
-                    if (lp.includes('enderman') || lp.includes('ender man')) return (c,ctx)=>drawEnderman(ctx,c.width,c.height);
-                    if (lp.includes('zombie') && lp.includes('minecraft'))   return (c,ctx)=>drawZombie(ctx,c.width,c.height);
-                    if (lp.includes('skeleton') && lp.includes('minecraft')) return (c,ctx)=>drawSkeleton(ctx,c.width,c.height);
-                    if (lp.includes('steve'))                                  return (c,ctx)=>drawSteve(ctx,c.width,c.height);
-                    if (lp.includes('creeper') || lp.includes('minecraft'))   return (c,ctx)=>drawCreeper(ctx,c.width,c.height);
-                    return null;
-                })();
-
-                let imageUrl;
-                if (canvasFallback) {
-                    const cv = document.createElement('canvas');
-                    cv.width = 800; cv.height = 600;
-                    canvasFallback(cv, cv.getContext('2d'));
-                    imageUrl = cv.toDataURL('image/png');
-                } else {
-                    imageUrl = generateAIImage(prompt);
+            // ── Canvas path: only for plain named characters, no 3D, no custom skin ──
+            if (!is3D && !isCustomSkin) {
+                const charMap = {
+                    enderman : () => { const cv=make800(); drawEnderman(cv.getContext('2d'),800,600); return cv; },
+                    'ender man': () => { const cv=make800(); drawEnderman(cv.getContext('2d'),800,600); return cv; },
+                    creeper  : () => { const cv=make800(); drawCreeper(cv.getContext('2d'),800,600); return cv; },
+                    zombie   : () => { if(!lp.includes('minecraft')) return null; const cv=make800(); drawZombie(cv.getContext('2d'),800,600); return cv; },
+                    skeleton : () => { if(!lp.includes('minecraft')) return null; const cv=make800(); drawSkeleton(cv.getContext('2d'),800,600); return cv; },
+                    steve    : () => { const cv=make800(); drawSteve(cv.getContext('2d'),800,600); return cv; },
+                };
+                for (const [key, fn] of Object.entries(charMap)) {
+                    if (lp.includes(key)) {
+                        const cv = fn();
+                        if (cv) {
+                            addMessage({ role:'assistant',
+                                content:`🎨 AI Image Generated!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
+                                timestamp:new Date(), isImage:true, imageUrl:cv.toDataURL('image/png') });
+                            return;
+                        }
+                    }
                 }
-
-                addMessage({
-                    role: 'assistant',
-                    content: `🎨 AI Image Generated!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
-                    timestamp: new Date(),
-                    isImage: true,
-                    imageUrl: imageUrl
-                });
             }
+
+            // ── Pollinations path: real AI image for everything else ──────────────
+            const enhanced = buildImagePrompt(prompt, lp);
+            const seed = Math.floor(Math.random() * 999999);
+            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux`;
+
+            // Add the message immediately — the <img> tag loads Pollinations in the background
+            // (no blocking preload; image appears once Pollinations finishes generating ~10-30s)
+            addMessage({
+                role: 'assistant',
+                content: `🎨 AI Image Generated!\n\nYour Prompt: "${prompt}"\n\n⏳ Image is loading — Pollinations AI is generating it now (may take 15–30 seconds)...\n\nGenerated Image:`,
+                timestamp: new Date(),
+                isImage: true,
+                imageUrl: url
+            });
+        }
+
+        function make800() {
+            const cv = document.createElement('canvas');
+            cv.width = 800; cv.height = 600;
+            return cv;
         }
 
         function generateAIImage(prompt) {
