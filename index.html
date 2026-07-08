@@ -596,7 +596,7 @@
                 // Add image if present with download button
                 const imageHTML = msg.imageUrl ? `
                     <div style="margin-top: 15px;">
-                        <img src="${msg.imageUrl}" style="max-width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" alt="Generated AI Image" id="generated-image-${index}" />
+                        <img src="${msg.imageUrl}" style="max-width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" alt="Generated AI Image" id="generated-image-${index}" onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('div'), { innerHTML: '⚠️ The image failed to load (the AI image service may be busy or unreachable). Try asking again — sometimes a retry fixes it.', style: 'padding:15px; background:rgba(255,255,255,0.06); border-radius:10px; color:#fca5a5;' }))" />
                         <div style="margin-top: 10px;">
                             <button onclick="downloadImage('${msg.imageUrl}', 'cosmo-ai-image-${index}.png')" style="
                                 background: linear-gradient(to right, #06b6d4, #3b82f6, #a855f7);
@@ -843,7 +843,15 @@
                 return;
             }
 
-            // Layer 4 — Wikipedia knowledge base (works everywhere)
+            // Layer 4 — Local smart responses (jokes, facts, greetings, etc.) checked BEFORE Wikipedia,
+            // so curated/intentional answers (like "knock knock") always win over a random Wikipedia match.
+            const local = generateSmartResponse(message);
+            if (!local.includes('Could you rephrase')) {
+                addMessage({ role: 'assistant', content: local, timestamp: new Date() });
+                return;
+            }
+
+            // Layer 5 — Wikipedia knowledge base (fallback for topics not covered above)
             try {
                 const wikiReply = await tryWikipedia(message);
                 if (wikiReply) {
@@ -851,13 +859,6 @@
                     return;
                 }
             } catch(e) {}
-
-            // Layer 5 — Local smart responses (math, facts, greetings, etc.)
-            const local = generateSmartResponse(message);
-            if (!local.includes('Could you rephrase')) {
-                addMessage({ role: 'assistant', content: local, timestamp: new Date() });
-                return;
-            }
 
             // Layer 6 — Graceful "I'll try harder" response
             addMessage({
@@ -1150,6 +1151,20 @@
             // Help/capabilities
             if (message.includes('what can you do') || message.includes('your capabilities') || message.includes('help me')) {
                 return '✨ Cosmo AI Capabilities\n\nI\'m a highly intelligent assistant that can help with:\n\n🔢 Mathematics\n• All operations: +, -, ×, ÷, powers, percentages\n• Word problems and calculations\n• Times tables (try "5 times table")\n• Square roots and advanced math\n\n🔬 Science\n• Physics, Chemistry, Biology, Astronomy\n• Explanations and facts\n\n🌍 Geography & History\n• Countries, capitals, events\n• Historical figures and dates\n\n💻 Technology\n• Programming, AI, computers\n• How things work\n\n🎨 Image Generation\n• Create AI images from descriptions\n• Switch to Image Mode!\n\n📚 General Knowledge\n• Definitions, explanations\n• Animals, sports, food, colors\n• Fun facts and trivia\n• Answering any question\n\nJust ask me anything!';
+            }
+
+            // Knock-knock jokes (handled as a full one-liner since there's no multi-turn state)
+            if (/^knock,?\s*knock\b/i.test(message.trim())) {
+                const knockKnockJokes = [
+                    '🚪 Knock knock!\nWho\'s there?\nLettuce.\nLettuce who?\nLettuce in, it\'s cold out here!',
+                    '🚪 Knock knock!\nWho\'s there?\nBoo.\nBoo who?\nAww, don\'t cry, it\'s just a joke!',
+                    '🚪 Knock knock!\nWho\'s there?\nOlive.\nOlive who?\nOlive you and I miss you!',
+                    '🚪 Knock knock!\nWho\'s there?\nCow says.\nCow says who?\nNo, a cow says moo!',
+                    '🚪 Knock knock!\nWho\'s there?\nInterrupting cow.\nInterrupting cow wh—\nMOO!',
+                    '🚪 Knock knock!\nWho\'s there?\nTank.\nTank who?\nYou\'re welcome!',
+                    '🚪 Knock knock!\nWho\'s there?\nWater.\nWater who?\nWater you doing later? Want to hang out?'
+                ];
+                return knockKnockJokes[Math.floor(Math.random() * knockKnockJokes.length)];
             }
 
             // Jokes
@@ -1638,10 +1653,20 @@
 
             let style = '';
 
-            if (lp.includes('minecraft')) {
+            // Known Minecraft mobs/characters should keep the Minecraft look even if the
+            // word "minecraft" itself isn't typed — otherwise "3d enderman" falls through
+            // to the generic photorealistic style below and stops looking like Minecraft at all.
+            const isMinecraftMob = /minecraft|enderman|ender man|creeper|steve\b|zombie|skeleton|villager|blaze|wither|iron golem|piglin|axolotl|warden|ghast|slime|allay/.test(lp);
+
+            if (isMinecraftMob) {
                 const is3d = /3d|three.?d/i.test(prompt);
+                // Make sure the actual generated prompt names "Minecraft" explicitly, even if
+                // the user only said e.g. "enderman", so the AI renderer keeps the right style.
+                if (!lp.includes('minecraft')) {
+                    prompt = `Minecraft ${prompt}`;
+                }
                 style = is3d
-                    ? 'minecraft 3D render, voxel art, cinematic volumetric lighting, dramatic shadows, ray tracing, epic composition, professional game art, depth of field'
+                    ? 'minecraft 3D render, voxel art, blocky character design, cinematic volumetric lighting, dramatic shadows, ray tracing, epic composition, professional game art, depth of field'
                     : 'minecraft pixel art style, voxel characters, cinematic lighting, epic dramatic atmosphere, professional Minecraft artwork, glowing effects';
             } else if (/space|galaxy|cosmic|nebula|star|universe/.test(lp)) {
                 style = 'deep space digital art, glowing nebula, volumetric light, stars, cosmic scale, cinematic atmosphere, dark background with vibrant purples and blues';
