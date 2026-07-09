@@ -491,6 +491,7 @@
         let isLoading = false;
         let currentMode = 'chat'; // 'chat' or 'image'
         let knockKnockState = null; // null | { stage: 'awaiting-name' } | { stage: 'awaiting-punchline', name: string }
+        let lastYoutubeChannel = null; // { title, url, channelId } — so "give me the link" works as a follow-up
 
         const messagesContainer = document.getElementById('messagesContainer');
         const messagesWrapper = document.getElementById('messagesWrapper');
@@ -770,6 +771,88 @@
             return null;
         }
 
+        // ── YouTube channel lookup ──────────────────────────────────────────────
+        // Now that Cosmo has a real backend (Vercel serverless functions), the
+        // YouTube API key lives server-side as an environment variable and is
+        // never exposed to the browser. The frontend just calls /api/youtube.
+        function formatSubscriberCount(n) {
+            n = parseInt(n, 10);
+            if (isNaN(n)) return 'unknown';
+            if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2).replace(/\.00$/, '') + 'B';
+            if (n >= 1_000_000) return (n / 1_000_000).toFixed(2).replace(/\.00$/, '') + 'M';
+            if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, '') + 'K';
+            return String(n);
+        }
+
+        // Pull the actual channel/creator name out of a natural-language question,
+        // e.g. "what's mrbeast's youtube channel link" -> "mrbeast"
+        function extractYoutubeQuery(message) {
+            let q = message.trim();
+            q = q.replace(/^(please\s+)?(who is|what is|what's|whats|tell me about|search youtube for|search for|look up|find|give me|show me|can you find)\s+/i, '');
+            q = q.replace(/'s\b/gi, '');
+            q = q.replace(/\byoutube\s+channel\b/gi, '');
+            q = q.replace(/\bchannel\s+link\b/gi, '');
+            q = q.replace(/\bon\s+youtube\b/gi, '');
+            q = q.replace(/\byoutuber\b/gi, '');
+            q = q.replace(/\byoutube\b/gi, '');
+            q = q.replace(/\bchannel\b/gi, '');
+            q = q.replace(/\blink\b/gi, '');
+            q = q.replace(/[?.!]+$/, '');
+            q = q.replace(/\b(the|for|of|a|an)\b/gi, '').replace(/\s+/g, ' ');
+            return q.trim();
+        }
+
+        // Returns a reply string if the message is a YouTube-related question,
+        // or null if it isn't (so handleChatMessage can fall through to other layers).
+        async function tryYoutubeChannel(message) {
+            const lm = message.toLowerCase().trim();
+            const mentionsYoutube = /youtube|youtuber/i.test(lm);
+            const isBareLinkFollowup = /^(what'?s|give me|send me|show me|what is)\s+(the\s+)?(channel\s+)?link\b/i.test(lm.trim()) || /^(the\s+)?(channel\s+)?link\??$/i.test(lm.trim());
+
+            if (!mentionsYoutube && !(isBareLinkFollowup && lastYoutubeChannel)) return null;
+
+            // Follow-up question about the channel we already looked up — no new API call needed
+            if (isBareLinkFollowup && lastYoutubeChannel) {
+                return `🔗 Here's the link to ${lastYoutubeChannel.title}'s channel:\n${lastYoutubeChannel.url}`;
+            }
+
+            const query = extractYoutubeQuery(message);
+
+            if (!query || query.length < 2) {
+                if (lastYoutubeChannel) {
+                    return `🔗 Here's the link to ${lastYoutubeChannel.title}'s channel:\n${lastYoutubeChannel.url}`;
+                }
+                return `📺 Which YouTuber or channel did you want to know about? Ask me something like "who is MrBeast on YouTube" and I'll look them up!`;
+            }
+
+            try {
+                const resp = await fetch(`/api/youtube?q=${encodeURIComponent(query)}`);
+                let data;
+                try { data = await resp.json(); } catch (e) { data = {}; }
+
+                if (!resp.ok) {
+                    if (resp.status === 500 && data.error && data.error.includes('YOUTUBE_API_KEY')) {
+                        return `📺 The server isn't set up with a YouTube API key yet.\n\nAdd a YOUTUBE_API_KEY environment variable in your Vercel project (Settings → Environment Variables), then redeploy. You can get a free key from console.cloud.google.com by enabling "YouTube Data API v3" and creating an API key.`;
+                    }
+                    if (resp.status === 404) {
+                        return `📺 I couldn't find a YouTube channel matching "${query}". Try checking the spelling, or give me their exact channel name?`;
+                    }
+                    return `📺 Something went wrong reaching YouTube (error ${resp.status}). Want to try again?`;
+                }
+
+                lastYoutubeChannel = { title: data.title, url: data.url, channelId: data.channelId };
+
+                const subsText = data.subscribers ? `${formatSubscriberCount(data.subscribers)} subscribers` : '';
+                const videosText = data.videos ? `${parseInt(data.videos).toLocaleString()} videos` : '';
+                const statsLine = (subsText || videosText) ? `\n\n👥 ${[subsText, videosText].filter(Boolean).join(' • ')}` : '';
+                const descLine = data.description ? `\n\n"${data.description}"` : '';
+
+                return `📺 Found it! **${data.title}** on YouTube${statsLine}${descLine}\n\n🔗 ${data.url}\n\n(Ask me "give me the link" anytime to get this again!)`;
+            } catch (e) {
+                return `📺 I couldn't reach the server just now — check your connection and try again.`;
+            }
+        }
+
         async function tryWikipedia(message) {
             // Don't search Wikipedia for math-like inputs
             const lm = message.toLowerCase();
@@ -853,6 +936,13 @@
             const personalityReply = getCosmoPersonalityReply(lower);
             if (personalityReply) {
                 addMessage({ role: 'assistant', content: personalityReply, timestamp: new Date() });
+                return;
+            }
+
+            // Layer 1.5 — YouTube channel lookups ("who is X on youtube", "give me the channel link")
+            const youtubeReply = await tryYoutubeChannel(message);
+            if (youtubeReply) {
+                addMessage({ role: 'assistant', content: youtubeReply, timestamp: new Date() });
                 return;
             }
 
@@ -1765,15 +1855,61 @@
             const seed = Math.floor(Math.random() * 999999);
             const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhanced)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux`;
 
-            // Add the message immediately — the <img> tag loads Pollinations in the background
-            // (no blocking preload; image appears once Pollinations finishes generating ~10-30s)
+            // Show a placeholder while we fetch — no <img> tag yet, since Pollinations'
+            // free/anonymous tier is rate-limited (roughly 1 request per ~15s) and can
+            // also return transient 429/502/503 errors. Fetching (and retrying) ourselves
+            // means a busy moment gets quietly retried instead of just failing on the user.
             addMessage({
                 role: 'assistant',
-                content: `🎨 AI Image Generated!\n\nYour Prompt: "${prompt}"\n\n⏳ Image is loading — Pollinations AI is generating it now (may take 15–30 seconds)...\n\nGenerated Image:`,
+                content: `🎨 Generating your image...\n\nYour Prompt: "${prompt}"\n\n⏳ This can take 15–30 seconds, longer if the service is busy (it'll retry automatically). Hang tight...`,
                 timestamp: new Date(),
-                isImage: true,
-                imageUrl: url
+                isImage: false
             });
+            const messageIndex = messages.length - 1;
+
+            const resultUrl = await fetchImageWithRetry(url);
+            if (resultUrl) {
+                messages[messageIndex] = {
+                    ...messages[messageIndex],
+                    content: `🎨 AI Image Generated!\n\nYour Prompt: "${prompt}"\n\nGenerated Image:`,
+                    isImage: true,
+                    imageUrl: resultUrl
+                };
+            } else {
+                messages[messageIndex] = {
+                    ...messages[messageIndex],
+                    content: `⚠️ Sorry, the AI image service didn't respond after a few tries — it's likely busy or rate-limiting right now. This usually clears up within a minute; waiting a bit before trying again (rather than retrying instantly) gives it the best chance of working.`,
+                    isImage: false
+                };
+            }
+            renderMessages();
+            scrollToBottom();
+        }
+
+        // Fetches a Pollinations image URL and retries with backoff on failure, since the
+        // free/anonymous tier can transiently 429/502/503 (per Pollinations' own docs, these
+        // are "usually transient"). Returns an object URL on success, or null if all attempts fail.
+        async function fetchImageWithRetry(url, maxAttempts = 4) {
+            const delaysMs = [0, 4000, 9000, 15000];
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                if (delaysMs[attempt]) {
+                    await new Promise(resolve => setTimeout(resolve, delaysMs[attempt]));
+                }
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        // Guard against a 200-status placeholder/error image (some rate-limit
+                        // responses come back as a valid HTTP 200 with a bogus image body).
+                        if (blob.type.startsWith('image/') && blob.size > 5000) {
+                            return URL.createObjectURL(blob);
+                        }
+                    }
+                } catch (e) {
+                    // Network error — fall through and retry
+                }
+            }
+            return null;
         }
 
         function make800() {
