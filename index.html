@@ -490,6 +490,7 @@
         let messages = [];
         let isLoading = false;
         let currentMode = 'chat'; // 'chat' or 'image'
+        let knockKnockState = null; // null | { stage: 'awaiting-name' } | { stage: 'awaiting-punchline', name: string }
 
         const messagesContainer = document.getElementById('messagesContainer');
         const messagesWrapper = document.getElementById('messagesWrapper');
@@ -821,6 +822,32 @@
 
         async function handleChatMessage(message) {
             const lower = message.toLowerCase().trim();
+            const trimmed = message.trim();
+
+            // Layer 0 — Interactive knock-knock joke (spans multiple turns)
+            if (knockKnockState) {
+                if (knockKnockState.stage === 'awaiting-name') {
+                    // Allow restarting if they say "knock knock" again instead of a name
+                    if (/^knock,?\s*knock\b/i.test(trimmed)) {
+                        addMessage({ role: 'assistant', content: 'Who\'s there? 😄', timestamp: new Date() });
+                        return;
+                    }
+                    const name = trimmed.replace(/[.!?]+$/, '');
+                    knockKnockState = { stage: 'awaiting-punchline', name };
+                    addMessage({ role: 'assistant', content: `${name} who? 😄`, timestamp: new Date() });
+                    return;
+                }
+                if (knockKnockState.stage === 'awaiting-punchline') {
+                    knockKnockState = null;
+                    addMessage({ role: 'assistant', content: `😂 Ha! Good one! Want to do another one? Just say "knock knock"!`, timestamp: new Date() });
+                    return;
+                }
+            }
+            if (/^knock,?\s*knock\b/i.test(trimmed)) {
+                knockKnockState = { stage: 'awaiting-name' };
+                addMessage({ role: 'assistant', content: 'Who\'s there? 😄', timestamp: new Date() });
+                return;
+            }
 
             // Layer 1 — Personality / meta questions answered instantly
             const personalityReply = getCosmoPersonalityReply(lower);
@@ -1151,20 +1178,6 @@
             // Help/capabilities
             if (message.includes('what can you do') || message.includes('your capabilities') || message.includes('help me')) {
                 return '✨ Cosmo AI Capabilities\n\nI\'m a highly intelligent assistant that can help with:\n\n🔢 Mathematics\n• All operations: +, -, ×, ÷, powers, percentages\n• Word problems and calculations\n• Times tables (try "5 times table")\n• Square roots and advanced math\n\n🔬 Science\n• Physics, Chemistry, Biology, Astronomy\n• Explanations and facts\n\n🌍 Geography & History\n• Countries, capitals, events\n• Historical figures and dates\n\n💻 Technology\n• Programming, AI, computers\n• How things work\n\n🎨 Image Generation\n• Create AI images from descriptions\n• Switch to Image Mode!\n\n📚 General Knowledge\n• Definitions, explanations\n• Animals, sports, food, colors\n• Fun facts and trivia\n• Answering any question\n\nJust ask me anything!';
-            }
-
-            // Knock-knock jokes (handled as a full one-liner since there's no multi-turn state)
-            if (/^knock,?\s*knock\b/i.test(message.trim())) {
-                const knockKnockJokes = [
-                    '🚪 Knock knock!\nWho\'s there?\nLettuce.\nLettuce who?\nLettuce in, it\'s cold out here!',
-                    '🚪 Knock knock!\nWho\'s there?\nBoo.\nBoo who?\nAww, don\'t cry, it\'s just a joke!',
-                    '🚪 Knock knock!\nWho\'s there?\nOlive.\nOlive who?\nOlive you and I miss you!',
-                    '🚪 Knock knock!\nWho\'s there?\nCow says.\nCow says who?\nNo, a cow says moo!',
-                    '🚪 Knock knock!\nWho\'s there?\nInterrupting cow.\nInterrupting cow wh—\nMOO!',
-                    '🚪 Knock knock!\nWho\'s there?\nTank.\nTank who?\nYou\'re welcome!',
-                    '🚪 Knock knock!\nWho\'s there?\nWater.\nWater who?\nWater you doing later? Want to hang out?'
-                ];
-                return knockKnockJokes[Math.floor(Math.random() * knockKnockJokes.length)];
             }
 
             // Jokes
@@ -1665,9 +1678,29 @@
                 if (!lp.includes('minecraft')) {
                     prompt = `Minecraft ${prompt}`;
                 }
+                // The AI image model doesn't reliably know what each Minecraft mob actually
+                // looks like, so spell out the real design details it needs to get it right.
+                const mobDescriptors = [
+                    { match: /enderman|ender man/, text: 'extremely tall thin slender humanoid, smooth featureless solid black body and limbs, no visible face except two glowing bright purple rectangular eyes, no horns, no mask, long thin arms and legs, standing straight' },
+                    { match: /creeper/, text: 'short stout green blocky body, four short legs, flat face with black pixelated frown mouth and two black square eyes, no arms, green camouflage-patterned skin, no other creatures' },
+                    { match: /\bsteve\b/, text: 'blocky humanoid player character, cyan/light blue shirt, dark blue pants, brown short hair, simple blocky square head with basic facial features' },
+                    { match: /skeleton/, text: 'blocky white/off-white bony humanoid, holds a bow, black square eyes, ribcage pattern on body' },
+                    { match: /zombie/, text: 'blocky green-skinned humanoid, torn blue shirt and dark pants, black square eyes, arms held forward' },
+                    { match: /villager/, text: 'blocky humanoid with large unibrow, long nose, green robe' },
+                    { match: /blaze/, text: 'floating blocky humanoid made of yellow/orange rods, surrounded by flames, glowing yellow eyes' },
+                    { match: /wither\b/, text: 'three-headed blocky black skeletal flying creature with glowing eyes' },
+                    { match: /iron golem/, text: 'large blocky gray/iron-colored humanoid, red/orange chest accent, flower-holding arms' },
+                    { match: /piglin/, text: 'blocky pink-skinned pig-like humanoid, tusks, gold jewelry' },
+                    { match: /ghast/, text: 'large white blocky floating squid-like creature with tentacles and a sad face' },
+                    { match: /slime/, text: 'green translucent cube-shaped blob creature, small squished face' }
+                ];
+                const descriptor = mobDescriptors.find(m => m.match.test(lp));
+                if (descriptor) {
+                    prompt = `${prompt}, (${descriptor.text})`;
+                }
                 style = is3d
-                    ? 'minecraft 3D render, voxel art, blocky character design, cinematic volumetric lighting, dramatic shadows, ray tracing, epic composition, professional game art, depth of field'
-                    : 'minecraft pixel art style, voxel characters, cinematic lighting, epic dramatic atmosphere, professional Minecraft artwork, glowing effects';
+                    ? 'minecraft 3D render, voxel art, blocky cubic character design, accurate to the real Minecraft game design, cinematic volumetric lighting, dramatic shadows, ray tracing, epic composition, professional game art, depth of field'
+                    : 'minecraft pixel art style, voxel characters, accurate to the real Minecraft game design, cinematic lighting, epic dramatic atmosphere, professional Minecraft artwork, glowing effects';
             } else if (/space|galaxy|cosmic|nebula|star|universe/.test(lp)) {
                 style = 'deep space digital art, glowing nebula, volumetric light, stars, cosmic scale, cinematic atmosphere, dark background with vibrant purples and blues';
             } else if (/3d|three.?d|three dimensional/i.test(prompt)) {
@@ -3733,13 +3766,34 @@
         }
 
         // Download image function
-        function downloadImage(imageUrl, filename) {
-            const link = document.createElement('a');
-            link.href = imageUrl;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        async function downloadImage(imageUrl, filename) {
+            // Canvas-drawn images are already data URLs — these download directly.
+            if (imageUrl.startsWith('data:')) {
+                const link = document.createElement('a');
+                link.href = imageUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                return;
+            }
+            // AI-generated images are remote URLs — browsers ignore the `download`
+            // attribute for cross-origin links, so we fetch the image data ourselves
+            // and download it as a blob instead.
+            try {
+                const response = await fetch(imageUrl);
+                const blob = await response.blob();
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(blobUrl);
+            } catch (e) {
+                alert('Sorry, the download didn\'t work. Try right-clicking (or long-pressing) the image and choosing "Save image as..." instead.');
+            }
         }
 
         // Focus input on load
