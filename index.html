@@ -492,6 +492,7 @@
         let currentMode = 'chat'; // 'chat' or 'image'
         let knockKnockState = null; // null | { stage: 'awaiting-name' } | { stage: 'awaiting-punchline', name: string }
         let lastYoutubeChannel = null; // { title, url, channelId } — so "give me the link" works as a follow-up
+        let awaitingYoutubeName = false; // true right after Cosmo asks "who's the YouTuber?"
 
         const messagesContainer = document.getElementById('messagesContainer');
         const messagesWrapper = document.getElementById('messagesWrapper');
@@ -788,7 +789,7 @@
         // e.g. "what's mrbeast's youtube channel link" -> "mrbeast"
         function extractYoutubeQuery(message) {
             let q = message.trim();
-            q = q.replace(/^(please\s+)?(who is|what is|what's|whats|tell me about|search youtube for|search for|look up|find|give me|show me|can you find)\s+/i, '');
+            q = q.replace(/^(please\s+)?(who is|what is|what's|whats|tell me about|search youtube for|search for|look up|find|give me|show me|can you find|do you know|have you heard of|have you heard about)\s+/i, '');
             q = q.replace(/'s\b/gi, '');
             q = q.replace(/\byoutube\s+channel\b/gi, '');
             q = q.replace(/\bchannel\s+link\b/gi, '');
@@ -802,29 +803,19 @@
             return q.trim();
         }
 
-        // Returns a reply string if the message is a YouTube-related question,
-        // or null if it isn't (so handleChatMessage can fall through to other layers).
-        async function tryYoutubeChannel(message) {
-            const lm = message.toLowerCase().trim();
-            const mentionsYoutube = /youtube|youtuber/i.test(lm);
-            const isBareLinkFollowup = /^(what'?s|give me|send me|show me|what is)\s+(the\s+)?(channel\s+)?link\b/i.test(lm.trim()) || /^(the\s+)?(channel\s+)?link\??$/i.test(lm.trim());
+        // Checks whether a "query" is really just leftover connective words
+        // ("do you know who this is") rather than an actual name — used to detect
+        // when someone has asked about a YouTuber generically without naming one yet.
+        const YOUTUBE_FILLER_WORDS = new Set(['do','you','know','who','this','that','is','are','have','heard','of','a','an','the','i','im',"i'm",'am','going','to','tell','give','ask','about','can','it',"it's",'its','me','there','someone','somebody']);
+        function isJustFillerWords(q) {
+            const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+            if (!words.length) return true;
+            return words.every(w => YOUTUBE_FILLER_WORDS.has(w));
+        }
 
-            if (!mentionsYoutube && !(isBareLinkFollowup && lastYoutubeChannel)) return null;
-
-            // Follow-up question about the channel we already looked up — no new API call needed
-            if (isBareLinkFollowup && lastYoutubeChannel) {
-                return `🔗 Here's the link to ${lastYoutubeChannel.title}'s channel:\n${lastYoutubeChannel.url}`;
-            }
-
-            const query = extractYoutubeQuery(message);
-
-            if (!query || query.length < 2) {
-                if (lastYoutubeChannel) {
-                    return `🔗 Here's the link to ${lastYoutubeChannel.title}'s channel:\n${lastYoutubeChannel.url}`;
-                }
-                return `📺 Which YouTuber or channel did you want to know about? Ask me something like "who is MrBeast on YouTube" and I'll look them up!`;
-            }
-
+        // Actually calls our backend and formats the result. Shared by both the
+        // direct-question path and the "waiting for a name" follow-up path.
+        async function lookupYoutubeChannel(query) {
             try {
                 const resp = await fetch(`/api/youtube?q=${encodeURIComponent(query)}`);
                 let data;
@@ -851,6 +842,48 @@
             } catch (e) {
                 return `📺 I couldn't reach the server just now — check your connection and try again.`;
             }
+        }
+
+        // Returns a reply string if the message is a YouTube-related question,
+        // or null if it isn't (so handleChatMessage can fall through to other layers).
+        async function tryYoutubeChannel(message) {
+            const lm = message.toLowerCase().trim();
+
+            // We already asked "who's the YouTuber?" — whatever they say next is the name,
+            // regardless of whether it mentions the word "youtube" at all.
+            if (awaitingYoutubeName) {
+                awaitingYoutubeName = false;
+                const nameQuery = extractYoutubeQuery(message) || message.trim();
+                if (!nameQuery || nameQuery.length < 2 || isJustFillerWords(nameQuery)) {
+                    awaitingYoutubeName = true; // give them another chance
+                    return `📺 Hmm, I didn't quite catch a name there — what's the YouTuber called?`;
+                }
+                return await lookupYoutubeChannel(nameQuery);
+            }
+
+            const mentionsYoutube = /youtube|youtuber/i.test(lm);
+            const isBareLinkFollowup = /^(what'?s|give me|send me|show me|what is)\s+(the\s+)?(channel\s+)?link\b/i.test(lm.trim()) || /^(the\s+)?(channel\s+)?link\??$/i.test(lm.trim());
+
+            if (!mentionsYoutube && !(isBareLinkFollowup && lastYoutubeChannel)) return null;
+
+            // Follow-up question about the channel we already looked up — no new API call needed
+            if (isBareLinkFollowup) {
+                if (lastYoutubeChannel) {
+                    return `🔗 Here's the link to ${lastYoutubeChannel.title}'s channel:\n${lastYoutubeChannel.url}`;
+                }
+                return `📺 I haven't looked anyone up yet this session — tell me a YouTuber's name and I'll find their channel!`;
+            }
+
+            const query = extractYoutubeQuery(message);
+
+            // "do you know who this youtuber is", "have you heard of this youtuber", etc. —
+            // a YouTuber was mentioned generically but no actual name was given yet.
+            if (!query || query.length < 2 || isJustFillerWords(query)) {
+                awaitingYoutubeName = true;
+                return `📺 Sure! Who's the YouTuber? Tell me their name and I'll look them up.`;
+            }
+
+            return await lookupYoutubeChannel(query);
         }
 
         async function tryWikipedia(message) {
