@@ -861,7 +861,8 @@
                 return await lookupYoutubeChannel(nameQuery);
             }
 
-            const mentionsYoutube = /youtube|youtuber/i.test(lm);
+            const handleMatch = message.match(/@([A-Za-z0-9_.]{2,30})\b/);
+            const mentionsYoutube = /youtube|youtuber/i.test(lm) || !!handleMatch;
             const isBareLinkFollowup = /^(what'?s|give me|send me|show me|what is)\s+(the\s+)?(channel\s+)?link\b/i.test(lm.trim()) || /^(the\s+)?(channel\s+)?link\??$/i.test(lm.trim());
 
             if (!mentionsYoutube && !(isBareLinkFollowup && lastYoutubeChannel)) return null;
@@ -874,6 +875,13 @@
                 return `📺 I haven't looked anyone up yet this session — tell me a YouTuber's name and I'll find their channel!`;
             }
 
+            // An @handle (e.g. "@FlameFragsMC") is an unambiguous, ready-to-search
+            // channel name — use it directly rather than running it through the
+            // generic phrase-stripping extractor, which isn't needed here anyway.
+            if (handleMatch) {
+                return await lookupYoutubeChannel(handleMatch[1]);
+            }
+
             const query = extractYoutubeQuery(message);
 
             // "do you know who this youtuber is", "have you heard of this youtuber", etc. —
@@ -884,6 +892,18 @@
             }
 
             return await lookupYoutubeChannel(query);
+        }
+
+        // Guards against Wikipedia's fuzzy search matching a completely unrelated
+        // article — requires the query and the returned title to actually share
+        // some real text, not just search-engine relevance scoring.
+        function queryRelatesToTitle(query, title) {
+            const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const q = norm(query);
+            const t = norm(title);
+            if (!q || !t) return false;
+            if (t.includes(q) || q.includes(t)) return true;
+            return query.toLowerCase().split(/\s+/).some(w => w.length >= 4 && title.toLowerCase().includes(w));
         }
 
         async function tryWikipedia(message) {
@@ -909,6 +929,14 @@
             if (!searchData.query?.search?.length) return null;
 
             const title = searchData.query.search[0].title;
+
+            // Wikipedia's search does fuzzy full-text matching, which can surface a
+            // wildly unrelated article for made-up single words or usernames (e.g.
+            // "FlameFrags" matching "Empedocles" because that article talks a lot
+            // about fire/flame). Only guard single-word queries — multi-word factual
+            // questions ("capital of france" -> "Paris") legitimately have titles
+            // that share no words with the query, so those must stay unfiltered.
+            if (!query.includes(' ') && !queryRelatesToTitle(query, title)) return null;
 
             // Get a clean intro extract
             const extractResp = await fetch(
@@ -1009,6 +1037,18 @@
                     return;
                 }
             } catch(e) {}
+
+            // Layer 5.5 — Last resort: if it's a short, unrecognized term, it might be a
+            // YouTuber/channel name nothing else caught (no "youtube" word, no @handle).
+            // Only try this for short inputs so it doesn't fire on long genuine questions.
+            const wordCount = message.trim().split(/\s+/).length;
+            if (wordCount <= 4 && message.trim().length >= 3) {
+                const ytFallback = await lookupYoutubeChannel(message.trim());
+                if (ytFallback && ytFallback.startsWith('📺 Found it!')) {
+                    addMessage({ role: 'assistant', content: ytFallback, timestamp: new Date() });
+                    return;
+                }
+            }
 
             // Layer 6 — Graceful "I'll try harder" response
             addMessage({
